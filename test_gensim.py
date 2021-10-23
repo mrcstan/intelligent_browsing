@@ -13,7 +13,8 @@ print(texts[0])
 
 dictionary = corpora.Dictionary(texts)
 corpus = [dictionary.doc2bow(text) for text in texts]
-
+print('Corpus 1:')
+print(corpus[0])
 bm25obj = bm25.BM25(corpus)
 
 #queries = dictionary.doc2bow(['black', 'space'])
