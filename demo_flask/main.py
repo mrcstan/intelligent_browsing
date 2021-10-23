@@ -23,19 +23,21 @@ def index():
     return render_template('index.html', result=result)
 
 def intelligent_matching(form):
-  query_texts = [simple_preprocess(form['query'], deacc=True)]
-  #query_texts = form['query'].split(' ')
-  print(query_texts)
-  query_bow = [dictionary.doc2bow(text) for text in query_texts]
-  print(query_bow)
-  scores = bm25obj.get_scores(query_bow)
-  rank_doc_inds = np.argsort(scores)
+    query_texts = [simple_preprocess(form['query'], deacc=True)]
 
-  top_rank_doc_ind = rank_doc_inds[-1]
+    query_bow = [dictionary.doc2bow(text) for text in query_texts]
+    print(query_bow)
+    if len(query_bow[0]):
+        scores = bm25obj.get_scores(query_bow[0])
+        rank_doc_inds = np.argsort(scores)
 
-  result = ' '.join(texts[top_rank_doc_ind])
+        top_rank_doc_ind = rank_doc_inds[-1]
 
-  return result
+        result = ' '.join(texts[top_rank_doc_ind])
+    else:
+        result = 'No match found'
+
+    return result
 
 if __name__ == "__main__":
   app.run(debug=True)

@@ -22,6 +22,7 @@ query_texts = [simple_preprocess(line, deacc=True) for line in open('./test_data
 queries = [dictionary.doc2bow(text) for text in query_texts]
 print('Query 1:')
 print(query_texts[0])
+print(queries[0])
 
 scores = bm25obj.get_scores(queries[0])
 rank_doc_inds = np.argsort(scores)
