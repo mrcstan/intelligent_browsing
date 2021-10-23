@@ -33,9 +33,9 @@ def intelligent_matching(form):
 
         top_rank_doc_ind = rank_doc_inds[-1]
 
-        result = ' '.join(texts[top_rank_doc_ind])
+        result = (form['query'], ' '.join(texts[top_rank_doc_ind]))
     else:
-        result = 'No match found'
+        result = (form['query'], False)
 
     return result
 

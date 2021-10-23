@@ -19,15 +19,15 @@
           <br><br>
       </div>
     </form>
-
-   <h2>Top match: </h2>
+    {% if result %}
+   <h2>Top match for {{result[0]}}: </h2>
    <br>
-   {% if result %}
-     <p> {{result}}
-   {%else%}
-     No query
-   {% endif %}
-
+       {% if result[1] %}
+         <p> {{result[1]}}
+       {%else%}
+         No match
+       {% endif %}
+    {% endif %}
     </body>
 </html>
 
