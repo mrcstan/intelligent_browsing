@@ -17,9 +17,9 @@ The server right now just has one API endpoint, `POST /search`. It expects the b
 
 ```json
 {
-    search_text: 'some',
-    doc_content: {
-        text_nodes: [
+    "search_text": "some",
+    "doc_content": {
+        "text_nodes": [
             "some text",
             "another text"
             "this is something some"
