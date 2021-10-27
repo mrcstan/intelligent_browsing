@@ -29,13 +29,58 @@ function onSearchTextTyped(event) {
 }
 
 /**
- * Gets the dom from the target.
- *
- * TODO: Instead of returning a string, can return a json object with offsets of
- * dom elements etc.
+ * Gets text content from the target tab's DOM
  */
-function getDOMFromTarget() {
-  return document.body.innerHTML
+function getTargetContent() {
+  // Get all the text nodes in the document body.
+  // TODO: this needs to filter out things like <script> / <style> elements
+  var text_nodes = []
+  walkTextNodes((node) => {
+    text_nodes.push(node.nodeValue)
+  })
+
+  return {
+    text_nodes,
+  }
+}
+
+/**
+ * Highlights results in the target tab's DOM.
+ */
+function highlightResults(results) {
+  /* results looks like:
+[
+  { index: 0, offsets: [[2, 5], [3, 6]] },
+  { index: 15, offsets: [[4, 7], [121, 124]]}
+]
+*/
+  clearHighlights()
+
+  if (results.length === 0) {
+    return
+  }
+
+  var text_nodes = []
+  var text_index = 0
+  var i = 0
+
+  walkTextNodes((node) => {
+    if (i < results.length && text_index === results[i].index) {
+      text_nodes.push(node)
+      i++
+    }
+
+    text_index++
+  })
+
+  for (var i = 0; i < results.length; i++) {
+    const node = text_nodes[i]
+    const result = results[i]
+
+    highlight(node.parentNode)
+
+    // TODO: should highlight individual words, not whole parent elements.
+  }
 }
 
 async function onSearchButtonClicked() {
@@ -47,10 +92,16 @@ async function onSearchButtonClicked() {
     currentWindow: true,
   })
 
+  // Load the helper functions in the target tab context.
+  await chrome.scripting.executeScript({
+    target: { tabId: activeTab[0].id },
+    files: ['dom.js'],
+  })
+
   // Execute the getDOMFromTarget function in the target tab context
   const result = await chrome.scripting.executeScript({
     target: { tabId: activeTab[0].id },
-    func: getDOMFromTarget,
+    func: getTargetContent,
   })
   // Unpack the result frame
   const resultValue = result[0].result
@@ -70,7 +121,20 @@ async function onSearchButtonClicked() {
       body: JSON.stringify(postData),
     })
     const jsonResponse = await response.json()
+
     console.log('Got response from server: ', jsonResponse)
+
+    // Inject stylesheet
+    await chrome.scripting.insertCSS({
+      target: { tabId: activeTab[0].id },
+      files: ['highlight.css'],
+    })
+
+    await chrome.scripting.executeScript({
+      target: { tabId: activeTab[0].id },
+      func: highlightResults,
+      args: [jsonResponse],
+    })
   } catch (e) {
     messages().innerText = 'An error occurred, please try again'
   }
