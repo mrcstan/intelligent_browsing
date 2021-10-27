@@ -1,3 +1,5 @@
+const SERVER_URL = 'http://localhost:8080/search'
+
 function getElement(id) {
   return document.querySelector('#' + id)
 }
@@ -26,12 +28,13 @@ function onSearchTextTyped(event) {
   messages().innerText = ''
 }
 
-function doSomething() {
-  console.log('In script exec!!')
-}
-
+/**
+ * Gets the dom from the target.
+ *
+ * TODO: Instead of returning a string, can return a json object with offsets of
+ * dom elements etc.
+ */
 function getDOMFromTarget() {
-  console.log(document.body)
   return document.body.innerHTML
 }
 
@@ -50,7 +53,7 @@ async function onSearchButtonClicked() {
         doc_content: results[0],
       }
 
-      fetch('http://localhost:8080/search', {
+      fetch(SERVER_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
