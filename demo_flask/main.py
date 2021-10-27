@@ -13,6 +13,7 @@ corpus = [dictionary.doc2bow(text) for text in texts]
 
 bm25obj = bm25.BM25(corpus)
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = False
