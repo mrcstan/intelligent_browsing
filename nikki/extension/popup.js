@@ -15,7 +15,13 @@ function messages() {
 }
 
 function onSearchTextTyped(event) {
-  searchButton().disabled = event.target.value.length === 0
+  const hasText = event.target.value.length > 0
+
+  if (hasText && (event.key === 'Enter' || event.keyCode === 13)) {
+    onSearchButtonClicked()
+  }
+
+  searchButton().disabled = !hasText
 
   messages().innerText = ''
 }
