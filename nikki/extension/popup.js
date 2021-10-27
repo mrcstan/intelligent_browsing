@@ -41,32 +41,39 @@ function getDOMFromTarget() {
 async function onSearchButtonClicked() {
   const searchText = searchBox().value
 
-  // Get the DOM from the current tab
-  chrome.tabs.executeScript(
-    {
-      code: '(' + getDOMFromTarget + ')();',
-    },
-    (results) => {
-      // Call the server
-      const postData = {
-        search_text: searchText,
-        doc_content: results[0],
-      }
+  // Get the active tab
+  const activeTab = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  })
 
-      fetch(SERVER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(postData),
-      })
-        .then((response) => response.json())
-        .then((data) => console.log('Got response ', data))
-        .catch((error) => {
-          messages().innerText = 'An error occurred, please try again'
-        })
-    }
-  )
+  // Execute the getDOMFromTarget function in the target tab context
+  const result = await chrome.scripting.executeScript({
+    target: { tabId: activeTab[0].id },
+    func: getDOMFromTarget,
+  })
+  // Unpack the result frame
+  const resultValue = result[0].result
+
+  // Make a POST request to the server
+  const postData = {
+    search_text: searchText,
+    doc_content: resultValue,
+  }
+
+  try {
+    const response = await fetch(SERVER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(postData),
+    })
+    const jsonResponse = await response.json()
+    console.log('Got response from server: ', jsonResponse)
+  } catch (e) {
+    messages().innerText = 'An error occurred, please try again'
+  }
 }
 
 window.onload = () => {
