@@ -13,7 +13,6 @@ function search(searchText, items) {
   const matches = []
 
   for (var i = 0; i < items.length; i++) {
-    console.log('Searching ' + i + ': ' + items[i])
     let match = {
       index: i,
       offsets: [],
@@ -21,7 +20,6 @@ function search(searchText, items) {
 
     var pos = items[i].toLowerCase().indexOf(searchText.toLowerCase())
     while (pos != -1) {
-      console.log('  ' + pos)
       match.offsets.push([pos, pos + searchText.length - 1])
       pos = items[i].indexOf(searchText, pos + searchText.length)
     }

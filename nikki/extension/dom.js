@@ -27,7 +27,6 @@ function walkTextNodes(nodeFunction) {
 }
 
 function highlight(node) {
-  console.log('Adding style to ' + node)
   node.className += ' XxXIntelligentSearchHighlight'
 }
 
