@@ -9,3 +9,7 @@
 .PopupBox input {
   padding: 5px;
 }
+
+#Messages {
+  color: red;
+}

@@ -10,8 +10,14 @@ function searchBox() {
   return getElement('SearchBox')
 }
 
+function messages() {
+  return getElement('Messages')
+}
+
 function onSearchTextTyped(event) {
   searchButton().disabled = event.target.value.length === 0
+
+  messages().innerText = ''
 }
 
 function onSearchButtonClicked() {
@@ -27,6 +33,9 @@ function onSearchButtonClicked() {
   })
     .then((response) => response.json())
     .then((data) => console.log('Got response ', data))
+    .catch((error) => {
+      messages().innerText = 'An error occurred, please try again'
+    })
 }
 
 window.onload = () => {
