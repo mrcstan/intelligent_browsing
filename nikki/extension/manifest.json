@@ -2,12 +2,12 @@
   "name": "Intelligent Browsing",
   "description": "Much better search in the browser",
   "version": "1.0",
-  "manifest_version": 3,
+  "manifest_version": 2,
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["storage", "activeTab", "scripting"],
-  "action": {
+  "permissions": ["storage", "activeTab"],
+  "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
       "16": "/icons/search16.png",

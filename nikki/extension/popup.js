@@ -26,22 +26,44 @@ function onSearchTextTyped(event) {
   messages().innerText = ''
 }
 
-function onSearchButtonClicked() {
+function doSomething() {
+  console.log('In script exec!!')
+}
+
+function getDOMFromTarget() {
+  console.log(document.body)
+  return document.body.innerHTML
+}
+
+async function onSearchButtonClicked() {
   const searchText = searchBox().value
 
-  // Call the server
-  fetch('http://localhost:8080/search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  // Get the DOM from the current tab
+  chrome.tabs.executeScript(
+    {
+      code: '(' + getDOMFromTarget + ')();',
     },
-    body: JSON.stringify({ search_text: searchText }),
-  })
-    .then((response) => response.json())
-    .then((data) => console.log('Got response ', data))
-    .catch((error) => {
-      messages().innerText = 'An error occurred, please try again'
-    })
+    (results) => {
+      // Call the server
+      const postData = {
+        search_text: searchText,
+        doc_content: results[0],
+      }
+
+      fetch('http://localhost:8080/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+      })
+        .then((response) => response.json())
+        .then((data) => console.log('Got response ', data))
+        .catch((error) => {
+          messages().innerText = 'An error occurred, please try again'
+        })
+    }
+  )
 }
 
 window.onload = () => {
