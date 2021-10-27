@@ -1,0 +1,11 @@
+.PopupBox {
+  display: grid;
+  grid-template-columns: max-content auto max-content;
+  gap: 10px;
+  padding: 10px;
+  width: 500px;
+}
+
+.PopupBox input {
+  padding: 5px;
+}
