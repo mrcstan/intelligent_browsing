@@ -18,7 +18,13 @@ function onSearchButtonClicked() {
   const searchText = searchBox().value
 
   // Call the server
-  fetch('https://perfectpractice.herokuapp.com/api/children')
+  fetch('http://localhost:8080/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ search_text: searchText }),
+  })
     .then((response) => response.json())
     .then((data) => console.log('Got response ', data))
 }
