@@ -1,5 +1,4 @@
-//const SERVER_URL = 'http://localhost:8080/search'
-const SERVER_URL = 'http://localhost:5000/search'
+const SERVER_URL = 'http://localhost:8080/search'
 
 function getElement(id) {
   return document.querySelector('#' + id)

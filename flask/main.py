@@ -24,7 +24,7 @@ def words():
         #custom_filters = [remove_stopwords, stem_text]
         #custom_filters = [stem_text]
         custom_filters = []
-        
+
         result = intelligent_matching(query, documents, custom_filters=custom_filters)
         print('result: ', result)
 
@@ -88,4 +88,4 @@ def intelligent_matching(query, documents, custom_filters=[]):
 
 
 if __name__ == "__main__":
-  app.run(debug=True)
+  app.run(debug=True, port=8080)
