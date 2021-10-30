@@ -18,13 +18,7 @@ function messages() {
 
 function onSearchTextTyped(event) {
   const hasText = event.target.value.length > 0
-
-  if (hasText && (event.key === 'Enter' || event.keyCode === 13)) {
-    onSearchButtonClicked()
-  }
-
   searchButton().disabled = !hasText
-
   messages().innerText = ''
 }
 
@@ -83,6 +77,10 @@ function highlightResults(results) {
   }
 }
 
+function clearSearch() {
+  clearHighlights()
+}
+
 async function onSearchButtonClicked() {
   const searchText = searchBox().value
 
@@ -92,11 +90,13 @@ async function onSearchButtonClicked() {
     currentWindow: true,
   })
 
-  // Load the helper functions in the target tab context.
-  await chrome.scripting.executeScript({
-    target: { tabId: activeTab[0].id },
-    files: ['dom.js'],
-  })
+  if (searchText.trim().length === 0) {
+    await chrome.scripting.executeScript({
+      target: { tabId: activeTab[0].id },
+      func: clearSearch,
+    })
+    return
+  }
 
   // Execute the getDOMFromTarget function in the target tab context
   const result = await chrome.scripting.executeScript({
@@ -124,12 +124,6 @@ async function onSearchButtonClicked() {
 
     console.log('Got response from server: ', jsonResponse)
 
-    // Inject stylesheet
-    await chrome.scripting.insertCSS({
-      target: { tabId: activeTab[0].id },
-      files: ['highlight.css'],
-    })
-
     await chrome.scripting.executeScript({
       target: { tabId: activeTab[0].id },
       func: highlightResults,
@@ -140,7 +134,12 @@ async function onSearchButtonClicked() {
   }
 }
 
+function onSearch(e) {
+  onSearchButtonClicked()
+}
+
 window.onload = () => {
   searchBox().addEventListener('keyup', onSearchTextTyped)
+  searchBox().addEventListener('search', onSearch)
   searchButton().addEventListener('click', onSearchButtonClicked)
 }
