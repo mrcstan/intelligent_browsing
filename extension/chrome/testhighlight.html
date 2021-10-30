@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!-- for testing the highlighting code-->
+<html>
+  <head>
+    <style type="text/css">
+      .XxXIntelligentSearchHighlight {
+        background-color: aquamarine;
+      }
+    </style>
+
+    <script src="./dom.js"></script>
+
+    <script>
+      window.onload = (event) => {
+
+      }
+
+      var highlighted = false
+
+      function toggleHighlights() {
+        if (highlighted) {
+          clearHighlights()
+          highlighted = false
+        } else {
+          var el = document.getElementById("2")
+
+          highlight(el.firstChild, [
+            [2, 4],
+            [5, 7],
+            [10, 12],
+            // [18, 20],
+            // [29, 31]
+          ])
+          highlighted = true
+        }
+      }
+    </script>
+
+  </head>
+  <body>
+    <button onclick="toggleHighlights()">Highlight</button>
+    <p id="2">This is this <b>a</b> fun</p>
+  </body>
+</html>

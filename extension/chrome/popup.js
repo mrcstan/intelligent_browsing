@@ -19,13 +19,7 @@ function messages() {
 
 function onSearchTextTyped(event) {
   const hasText = event.target.value.length > 0
-
-  if (hasText && (event.key === 'Enter' || event.keyCode === 13)) {
-    onSearchButtonClicked()
-  }
-
   searchButton().disabled = !hasText
-
   messages().innerText = ''
 }
 
@@ -33,6 +27,8 @@ function onSearchTextTyped(event) {
  * Gets text content from the target tab's DOM
  */
 function getTargetContent() {
+  clearHighlights()
+
   // Get all the text nodes in the document body.
   // TODO: this needs to filter out things like <script> / <style> elements
   var text_nodes = []
@@ -76,12 +72,14 @@ function highlightResults(results) {
 
   for (var i = 0; i < results.length; i++) {
     const node = text_nodes[i]
-    const result = results[i]
+    const offsets = results[i].offsets
 
-    highlight(node.parentNode)
-
-    // TODO: should highlight individual words, not whole parent elements.
+    highlight(node, offsets)
   }
+}
+
+function clearSearch() {
+  clearHighlights()
 }
 
 async function onSearchButtonClicked() {
@@ -93,11 +91,13 @@ async function onSearchButtonClicked() {
     currentWindow: true,
   })
 
-  // Load the helper functions in the target tab context.
-  await chrome.scripting.executeScript({
-    target: { tabId: activeTab[0].id },
-    files: ['dom.js'],
-  })
+  if (searchText.trim().length === 0) {
+    await chrome.scripting.executeScript({
+      target: { tabId: activeTab[0].id },
+      func: clearSearch,
+    })
+    return
+  }
 
   // Execute the getDOMFromTarget function in the target tab context
   const result = await chrome.scripting.executeScript({
@@ -125,12 +125,6 @@ async function onSearchButtonClicked() {
 
     console.log('Got response from server: ', jsonResponse)
 
-    // Inject stylesheet
-    await chrome.scripting.insertCSS({
-      target: { tabId: activeTab[0].id },
-      files: ['highlight.css'],
-    })
-
     await chrome.scripting.executeScript({
       target: { tabId: activeTab[0].id },
       func: highlightResults,
@@ -141,7 +135,12 @@ async function onSearchButtonClicked() {
   }
 }
 
+function onSearch(e) {
+  onSearchButtonClicked()
+}
+
 window.onload = () => {
   searchBox().addEventListener('keyup', onSearchTextTyped)
+  searchBox().addEventListener('search', onSearch)
   searchButton().addEventListener('click', onSearchButtonClicked)
 }

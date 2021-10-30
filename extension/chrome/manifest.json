@@ -20,5 +20,12 @@
     "32": "/icons/search32.png",
     "128": "/icons/search128.png"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "css": ["highlight.css"],
+      "js": ["dom.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
