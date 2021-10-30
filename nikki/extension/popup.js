@@ -32,6 +32,8 @@ function onSearchTextTyped(event) {
  * Gets text content from the target tab's DOM
  */
 function getTargetContent() {
+  clearHighlights()
+
   // Get all the text nodes in the document body.
   // TODO: this needs to filter out things like <script> / <style> elements
   var text_nodes = []
