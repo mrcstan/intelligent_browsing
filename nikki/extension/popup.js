@@ -75,11 +75,9 @@ function highlightResults(results) {
 
   for (var i = 0; i < results.length; i++) {
     const node = text_nodes[i]
-    const result = results[i]
+    const offsets = results[i].offsets
 
-    highlight(node.parentNode)
-
-    // TODO: should highlight individual words, not whole parent elements.
+    highlight(node, offsets)
   }
 }
 

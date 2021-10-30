@@ -20,7 +20,7 @@ function search(searchText, items) {
 
     var pos = items[i].toLowerCase().indexOf(searchText.toLowerCase())
     while (pos != -1) {
-      match.offsets.push([pos, pos + searchText.length - 1])
+      match.offsets.push([pos, pos + searchText.length])
       pos = items[i].indexOf(searchText, pos + searchText.length)
     }
 
