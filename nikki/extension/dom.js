@@ -1,12 +1,13 @@
+const EXCLUDE_ELEMENTS = ['script', 'style', 'iframe', 'canvas']
+
 function walkTextNodes(nodeFunction) {
   // Filters out nodes that only contain whitespace and nodes that
-  // are children of <script> or <style> elements.
+  // are children of EXCLUDE_ELEMENTS
   const filter = {
     acceptNode: function (node) {
       if (/\S/.test(node.data)) {
         if (
-          node.parentNode.nodeName.toUpperCase() !== 'SCRIPT' &&
-          node.parentNode.nodeName.toUpperCase() !== 'STYLE'
+          !EXCLUDE_ELEMENTS.includes(node.parentNode.nodeName.toLowerCase())
         ) {
           return NodeFilter.FILTER_ACCEPT
         }
