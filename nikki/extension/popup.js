@@ -32,6 +32,8 @@ function onSearchTextTyped(event) {
  * Gets text content from the target tab's DOM
  */
 function getTargetContent() {
+  clearHighlights()
+
   // Get all the text nodes in the document body.
   // TODO: this needs to filter out things like <script> / <style> elements
   var text_nodes = []
@@ -75,11 +77,9 @@ function highlightResults(results) {
 
   for (var i = 0; i < results.length; i++) {
     const node = text_nodes[i]
-    const result = results[i]
+    const offsets = results[i].offsets
 
-    highlight(node.parentNode)
-
-    // TODO: should highlight individual words, not whole parent elements.
+    highlight(node, offsets)
   }
 }
 
