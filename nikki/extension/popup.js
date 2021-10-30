@@ -92,12 +92,6 @@ async function onSearchButtonClicked() {
     currentWindow: true,
   })
 
-  // Load the helper functions in the target tab context.
-  await chrome.scripting.executeScript({
-    target: { tabId: activeTab[0].id },
-    files: ['dom.js'],
-  })
-
   // Execute the getDOMFromTarget function in the target tab context
   const result = await chrome.scripting.executeScript({
     target: { tabId: activeTab[0].id },
@@ -123,12 +117,6 @@ async function onSearchButtonClicked() {
     const jsonResponse = await response.json()
 
     console.log('Got response from server: ', jsonResponse)
-
-    // Inject stylesheet
-    await chrome.scripting.insertCSS({
-      target: { tabId: activeTab[0].id },
-      files: ['highlight.css'],
-    })
 
     await chrome.scripting.executeScript({
       target: { tabId: activeTab[0].id },
