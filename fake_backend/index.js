@@ -40,7 +40,12 @@ app.post('/search', (req, res) => {
   console.log('Got request: ', req.body)
 
   const result = search(req.body.search_text, req.body.doc_content.text_nodes)
-  console.log('Result', result)
+  //console.log('Result', result)
+
+  // For inspecting the entire object
+  const util = require('util')
+  console.log('Result: ')
+  console.log(util.inspect(result, {showHidden: false, depth: null, colors: true}))
 
   res.json(result)
 })
