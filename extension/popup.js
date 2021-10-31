@@ -202,6 +202,9 @@ async function onSearchButtonClicked() {
       target: { tabId: activeTab[0].id },
       func: clearSearch,
     })
+    gCurrentResult = null
+    gResultCount = 0
+    updateButtons()
     return
   }
 
