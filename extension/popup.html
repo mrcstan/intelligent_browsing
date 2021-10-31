@@ -3,15 +3,26 @@
   <head>
     <link rel="stylesheet" href="popup.css">
     <script src="popup.js"></script>
+    <!-- Use fontawesome icons -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
   </head>
   <body>
     <div class="PopupBox">
-      <img src="icons/search32.png" />
       <input id="SearchBox" placeholder="Intelligent Search" id="SearchBox" type="search" autofocus></input>
-      <button disabled id="SearchButton">Search</button>
-
+      <span id="resultCounter">0/0</span>
+      <button id="previousResult">
+        <i class="fas fa-chevron-up"></i>
+      </button>
+      <button id="nextResult">
+        <i class="fas fa-chevron-down"></i>
+      </button>
+      <button id="close">
+        <i class="fas fa-times"></i>
+      </button>
+      <div id="Messages"></div>
       <span></span>
-      <div id="Messages">&nbsp</div>
+      <span></span>
+      <span></span>
       <span></span>
     </div>
   </body>

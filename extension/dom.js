@@ -32,6 +32,10 @@ function walkTextNodes(nodeFunction) {
 }
 
 function clearHighlights() {
+  gResultSpans = []
+  if (gHighlightedElement) {
+    gHighlightedElement.className = gHighlightedElement.className.replaceAll("XxXIntelligentSearchCurrent", "")
+  }
   var walker = document.createTreeWalker(
     document.body,
     NodeFilter.SHOW_ELEMENT
@@ -39,7 +43,7 @@ function clearHighlights() {
   parentsToNormalize = new Set()
   nodesToDelete = new Set()
   walkNodes(walker, node => {
-    if (node.nodeName.toLowerCase() === "span" && node.className === 'XxXIntelligentSearchHighlight') {
+    if (node.nodeName.toLowerCase() === "span" && node.className.indexOf('XxXIntelligentSearchHighlight') >= 0) {
       nodesToDelete.add(node)
       parentsToNormalize.add(node.parentNode)
     }
@@ -58,6 +62,8 @@ function clearHighlights() {
 
 // Given a text node, highlight all text at matching offsets.
 function highlight(originalNode, offsets) {
+
+  var spans = []
   var currentNode = originalNode
   var subtracted = 0
   for (var offset of offsets) {
@@ -73,10 +79,15 @@ function highlight(originalNode, offsets) {
     var highlightSpan = document.createElement("span")
     highlightSpan.className = "XxXIntelligentSearchHighlight"
     highlightSpan.textContent = currentNode.textContent
+    spans.push(highlightSpan)
     currentNode.parentNode.insertBefore(highlightSpan, currentNode)
     currentNode.parentNode.removeChild(currentNode)
 
     currentNode = newNode
   }
 
+  return spans
 }
+
+gResultSpans = []
+gHighlightedElement = null

@@ -1,3 +1,7 @@
 .XxXIntelligentSearchHighlight {
   background-color: aquamarine !important;
 }
+
+.XxXIntelligentSearchCurrent {
+  background-color: yellow !important;
+}
