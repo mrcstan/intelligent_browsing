@@ -58,7 +58,7 @@ function getTargetContent() {
 function updateButtons() {
   nextResultButton().disabled = gResultCount === 0
   previousResultButton().disabled = gResultCount === 0
-  resultCounter().innerText = (gCurrentResult === null ? 0 : gCurrentResult) + "/" + gResultCount
+  resultCounter().innerText = (gCurrentResult === null ? 0 : gCurrentResult + 1) + "/" + gResultCount
 }
 
 /**
