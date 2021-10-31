@@ -246,6 +246,9 @@ function onSearch(e) {
 }
 
 function onClose() {
+  // Workaround to clear the search.
+  searchBox().value = ""
+  onSearchButtonClicked()
   window.close()
 }
 
