@@ -257,6 +257,12 @@ async function onSearchButtonClicked() {
 }
 
 function onSearch(e) {
+  // Detect escape-escape to close.
+  if (e.target.value === "" && gLastSearchText === "") {
+    onClose()
+    return
+  }
+
   onSearchButtonClicked()
 }
 
