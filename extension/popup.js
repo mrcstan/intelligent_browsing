@@ -184,7 +184,7 @@ function clearSearch() {
 async function onSearchButtonClicked() {
   const searchText = searchBox().value
 
-  if (searchText === gLastSearchText) {
+  if (searchText === gLastSearchText && gResultCount > 0) {
     // If the search text hasn't changed, then interpret this as a click on the next button.
     onNextResult()
     return
