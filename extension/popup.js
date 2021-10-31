@@ -77,7 +77,7 @@ function highlightResults(results) {
   clearHighlights()
 
   if (results.length === 0) {
-    return []
+    return 0
   }
 
   // Collect the text nodes in the order of the index
