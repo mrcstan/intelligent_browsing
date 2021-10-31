@@ -152,7 +152,11 @@ function selectResultImpl(index) {
   selection.removeAllRanges()
   selection.addRange(range)
 
-  element.scrollIntoView()
+  element.scrollIntoView({
+    behavior: 'auto',
+    block: 'center',
+    inline: 'center'
+  })
   element.className += " XxXIntelligentSearchCurrent"
   if (gHighlightedElement) {
     gHighlightedElement.className = gHighlightedElement.className.replaceAll("XxXIntelligentSearchCurrent", "")
