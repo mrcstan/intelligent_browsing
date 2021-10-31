@@ -32,6 +32,10 @@ function walkTextNodes(nodeFunction) {
 }
 
 function clearHighlights() {
+  gResultSpans = []
+  if (gHighlightedElement) {
+    gHighlightedElement.className = gHighlightedElement.className.replaceAll("XxXIntelligentSearchCurrent", "")
+  }
   var walker = document.createTreeWalker(
     document.body,
     NodeFilter.SHOW_ELEMENT
@@ -39,7 +43,7 @@ function clearHighlights() {
   parentsToNormalize = new Set()
   nodesToDelete = new Set()
   walkNodes(walker, node => {
-    if (node.nodeName.toLowerCase() === "span" && node.className === 'XxXIntelligentSearchHighlight') {
+    if (node.nodeName.toLowerCase() === "span" && node.className.indexOf('XxXIntelligentSearchHighlight') >= 0) {
       nodesToDelete.add(node)
       parentsToNormalize.add(node.parentNode)
     }
@@ -85,7 +89,5 @@ function highlight(originalNode, offsets) {
   return spans
 }
 
-IS_GLOBAL_STATE = {
-  /** Ranked spans for the current search */
-  rankedSpans: []
-}
+gResultSpans = []
+gHighlightedElement = null

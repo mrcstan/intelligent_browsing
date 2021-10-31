@@ -1,12 +1,12 @@
 const SERVER_URL = 'http://localhost:8080/search'
 
+gCurrentResult = null
+gResultCount = 0
+
 function getElement(id) {
   return document.querySelector('#' + id)
 }
 
-function searchButton() {
-  return getElement('SearchButton')
-}
 
 function searchBox() {
   return getElement('SearchBox')
@@ -16,9 +16,23 @@ function messages() {
   return getElement('Messages')
 }
 
+function previousResultButton() {
+  return getElement("previousResult")
+}
+
+function nextResultButton() {
+  return getElement("nextResult")
+}
+
+function closeButton() {
+  return getElement("close")
+}
+
+function resultCounter() {
+  return getElement("resultCounter")
+}
+
 function onSearchTextTyped(event) {
-  const hasText = event.target.value.length > 0
-  searchButton().disabled = !hasText
   messages().innerText = ''
 }
 
@@ -40,6 +54,12 @@ function getTargetContent() {
   }
 }
 
+function updateButtons() {
+  nextResultButton().disabled = gResultCount === 0 || gCurrentResult === gResultCount - 1
+  previousResultButton().disabled = gResultCount === 0 || gCurrentResult === 0
+  resultCounter().innerText = (gCurrentResult === null ? 0 : gCurrentResult) + "/" + gResultCount
+}
+
 /**
  * Highlights results in the target tab's DOM.
  */
@@ -55,10 +75,9 @@ function highlightResults(results) {
   will need to use it for navigating.
 */
   clearHighlights()
-  IS_GLOBAL_STATE.rankedSpans = []
 
   if (results.length === 0) {
-    return
+    return []
   }
 
   // Collect the text nodes in the order of the index
@@ -119,7 +138,38 @@ function highlightResults(results) {
   }
 
   // Now extract the spans in *ranked* order
-  IS_GLOBAL_STATE.rankedSpans = Object.values(rankedOffsets).map(v => v.span)
+  gResultSpans = Object.values(rankedOffsets).map(v => v.span)
+  return gResultSpans.length
+}
+
+// Selects the text content of an element and scrolls it into view
+function selectResultImpl(index) {
+  const element = gResultSpans[index]
+  selection = window.getSelection()
+  range = document.createRange()
+  range.selectNodeContents(element)
+  selection.removeAllRanges()
+  selection.addRange(range)
+
+  element.scrollIntoView()
+  element.className += " XxXIntelligentSearchCurrent"
+  if (gHighlightedElement) {
+    gHighlightedElement.className = gHighlightedElement.className.replaceAll("XxXIntelligentSearchCurrent", "")
+  }
+  gHighlightedElement = element
+}
+
+async function selectResult(index) {
+  console.log('selectResult', index)
+  const activeTab = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  })
+  await chrome.scripting.executeScript({
+    target: { tabId: activeTab[0].id },
+    func: selectResultImpl,
+    args: [index],
+  })
 }
 
 function clearSearch() {
@@ -169,12 +219,24 @@ async function onSearchButtonClicked() {
 
     console.log('Got response from server: ', jsonResponse)
 
-    await chrome.scripting.executeScript({
+    const result = await chrome.scripting.executeScript({
       target: { tabId: activeTab[0].id },
       func: highlightResults,
       args: [jsonResponse],
     })
+    console.log("result from highlightResults", result)
+
+    const resultCount = result[0].result
+    gResultCount = resultCount
+    gCurrentResult = resultCount > 0 ? 0 : null
+
+    if (resultCount > 0) {
+      selectResult(0)
+    }
+
+    updateButtons()
   } catch (e) {
+    console.log(e)
     messages().innerText = 'An error occurred, please try again'
   }
 }
@@ -183,8 +245,27 @@ function onSearch(e) {
   onSearchButtonClicked()
 }
 
+function onClose() {
+  window.close()
+}
+
+function onPreviousResult() {
+  gCurrentResult = Math.max(0, gCurrentResult - 1)
+  updateButtons()
+  selectResult(gCurrentResult)
+}
+
+function onNextResult() {
+  gCurrentResult = Math.min(gResultCount - 1, gCurrentResult + 1)
+  updateButtons()
+  selectResult(gCurrentResult)
+}
+
 window.onload = () => {
   searchBox().addEventListener('keyup', onSearchTextTyped)
   searchBox().addEventListener('search', onSearch)
-  searchButton().addEventListener('click', onSearchButtonClicked)
+  previousResultButton().addEventListener('click', onPreviousResult)
+  nextResultButton().addEventListener('click', onNextResult)
+  closeButton().addEventListener('click', onClose)
+  updateButtons()
 }
