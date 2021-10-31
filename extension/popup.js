@@ -2,6 +2,7 @@ const SERVER_URL = 'http://localhost:8080/search'
 
 gCurrentResult = null
 gResultCount = 0
+gLastSearchText = null
 
 function getElement(id) {
   return document.querySelector('#' + id)
@@ -178,6 +179,13 @@ function clearSearch() {
 
 async function onSearchButtonClicked() {
   const searchText = searchBox().value
+
+  if (searchText === gLastSearchText) {
+    // If the search text hasn't changed, then interpret this as a click on the next button.
+    onNextResult()
+    return
+  }
+  gLastSearchText = searchText
 
   // Get the active tab
   const activeTab = await chrome.tabs.query({
