@@ -165,7 +165,6 @@ function selectResultImpl(index) {
 }
 
 async function selectResult(index) {
-  console.log('selectResult', index)
   const activeTab = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -239,7 +238,6 @@ async function onSearchButtonClicked() {
       func: highlightResults,
       args: [jsonResponse],
     })
-    console.log("result from highlightResults", result)
 
     const resultCount = result[0].result
     gResultCount = resultCount
