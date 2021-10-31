@@ -58,6 +58,8 @@ function clearHighlights() {
 
 // Given a text node, highlight all text at matching offsets.
 function highlight(originalNode, offsets) {
+
+  var spans = []
   var currentNode = originalNode
   var subtracted = 0
   for (var offset of offsets) {
@@ -73,10 +75,17 @@ function highlight(originalNode, offsets) {
     var highlightSpan = document.createElement("span")
     highlightSpan.className = "XxXIntelligentSearchHighlight"
     highlightSpan.textContent = currentNode.textContent
+    spans.push(highlightSpan)
     currentNode.parentNode.insertBefore(highlightSpan, currentNode)
     currentNode.parentNode.removeChild(currentNode)
 
     currentNode = newNode
   }
 
+  return spans
+}
+
+IS_GLOBAL_STATE = {
+  /** Ranked spans for the current search */
+  rankedSpans: []
 }

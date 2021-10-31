@@ -46,35 +46,80 @@ function getTargetContent() {
 function highlightResults(results) {
   /* results looks like:
 [
-  { index: 0, offsets: [[2, 5], [3, 6]] },
-  { index: 15, offsets: [[4, 7], [121, 124]]}
+  { index: 0, offsets: [2, 5]},
+  { index: 15, offsets: [4, 7]},
+  { index: 15, offsets: [121, 124]},
+  { index: 0, offsets: [3, 6]}
 ]
+  order indicates rank. For highlighting, don't care about rank, but
+  will need to use it for navigating.
 */
   clearHighlights()
+  IS_GLOBAL_STATE.rankedSpans = []
 
   if (results.length === 0) {
     return
   }
 
+  // Collect the text nodes in the order of the index
   var text_nodes = []
-  var text_index = 0
-  var i = 0
-
   walkTextNodes((node) => {
-    if (i < results.length && text_index === results[i].index) {
-      text_nodes.push(node)
-      i++
-    }
-
-    text_index++
+    text_nodes.push(node)
   })
 
-  for (var i = 0; i < results.length; i++) {
-    const node = text_nodes[i]
-    const offsets = results[i].offsets
 
-    highlight(node, offsets)
+  // We have to highlight all indexes within a text node at
+  // the same time, otherwise the offsets get disturbed, but
+  // need to keep track of the rank. So group the offsets by
+  // the index. This maps the above into a structure like this:
+  /*
+    indexedOffsets = {
+      0: [
+        {
+          offsets: [2, 5],
+        },
+        {
+          offsets: [3, 6],
+        }
+      ],
+      15: [
+        {
+          offsets: [4, 7],
+        },
+        {
+          offsets: [121, 124],
+        }
+      ]
+    }
+  */
+  var indexedOffsets = {}
+  var rankedOffsets = {}
+  var rank = 0
+  for (var result of results) {
+    const key = result.index
+    if (!(key in indexedOffsets)) {
+      indexedOffsets[key] = []
+    }
+
+    const obj = { offsets: result.offsets }
+    indexedOffsets[key].push(obj)
+    rankedOffsets[rank] = obj
+    rank++
   }
+
+  // Now highlight the matches and get back the spans containing
+  // the highlights
+  for (const [index, info] of Object.entries(indexedOffsets)) {
+    // Sort info by the first offset.
+    info.sort((a, b) => a.offsets[0] - b.offsets[0])
+    const spans = highlight(text_nodes[index], info.map(v => v.offsets))
+    for (var i = 0; i < info.length; i++) {
+      info[i].span = spans[i]
+    }
+  }
+
+  // Now extract the spans in *ranked* order
+  IS_GLOBAL_STATE.rankedSpans = Object.values(rankedOffsets).map(v => v.span)
 }
 
 function clearSearch() {
