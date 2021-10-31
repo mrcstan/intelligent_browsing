@@ -56,8 +56,8 @@ function getTargetContent() {
 }
 
 function updateButtons() {
-  nextResultButton().disabled = gResultCount === 0 || gCurrentResult === gResultCount - 1
-  previousResultButton().disabled = gResultCount === 0 || gCurrentResult === 0
+  nextResultButton().disabled = gResultCount === 0
+  previousResultButton().disabled = gResultCount === 0
   resultCounter().innerText = (gCurrentResult === null ? 0 : gCurrentResult) + "/" + gResultCount
 }
 
@@ -265,13 +265,19 @@ function onClose() {
 }
 
 function onPreviousResult() {
-  gCurrentResult = Math.max(0, gCurrentResult - 1)
+  gCurrentResult--
+  if (gCurrentResult < 0) {
+    gCurrentResult = gResultCount - 1
+  }
   updateButtons()
   selectResult(gCurrentResult)
 }
 
 function onNextResult() {
-  gCurrentResult = Math.min(gResultCount - 1, gCurrentResult + 1)
+  gCurrentResult++
+  if (gCurrentResult === gResultCount) {
+    gCurrentResult = 0
+  }
   updateButtons()
   selectResult(gCurrentResult)
 }
