@@ -73,15 +73,12 @@ def intelligent_matching(query, documents, custom_filters=[]):
                 continue
 
             #print('score = ', scores[ind])
-            offsets = []
             for single_word_query in query_tokens:
                 # index of first character in text node matching the query
                 ind_char = documents[ind].lower().find(single_word_query); # find returns -1 if substring not found
                 if ind_char == -1:
                     continue
-                offsets.append([ind_char, ind_char+len(single_word_query)])
-
-            result.append({'index': ind, 'offsets': offsets})
+                result.append({'index': ind, 'offsets': [ind_char, ind_char+len(single_word_query)]})
 
             # returns the entire text node
             #result.append({'index': ind, 'offsets': [[0, len(documents[ind])]]})
