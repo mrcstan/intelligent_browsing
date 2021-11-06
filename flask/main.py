@@ -23,8 +23,8 @@ def words():
         query = request_data['search_text']
         documents = request_data['doc_content']['text_nodes']
         #custom_filters = [remove_stopwords, stem_text]
-        #custom_filters = [stem_text]
-        custom_filters = []
+        custom_filters = [stem_text]
+        #custom_filters = []
 
         result = intelligent_matching(query, documents, custom_filters=custom_filters)
         print('result: ', result)
