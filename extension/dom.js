@@ -87,8 +87,9 @@ function highlight(originalNode, offsets, wordOffsets, highlightClass = "XxXInte
     currentNode.parentNode.removeChild(currentNode)
 
     if (wordOffsets) {
-      console.log("Highlighting ", highlightSpan)
-      highlight(highlightSpan.firstChild, wordOffsets[i], undefined, "XxXIntelligentSearchWord")
+      if (wordOffsets[i].length > 0) {
+        highlight(highlightSpan.firstChild, wordOffsets[i], undefined, "XxXIntelligentSearchWord")
+      }
     }
 
     currentNode = newNode
