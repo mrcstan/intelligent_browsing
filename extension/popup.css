@@ -15,6 +15,14 @@
   color: red;
 }
 
+.Rating {
+  padding: 10px;
+}
+
+.Rating button {
+  margin: 3px;
+}
+
 .PopupBox button {
   border: none;
   background: none;

@@ -1,4 +1,6 @@
-const SERVER_URL = 'http://localhost:8080/search'
+const SERVER_URL = 'http://localhost:8080';
+
+const sessionId = Math.random();
 
 gCurrentResult = null
 gResultCount = 0
@@ -22,7 +24,15 @@ function previousResultButton() {
 }
 
 function nextResultButton() {
-  return getElement("nextResult")
+  return getElement("nextResult");
+}
+
+function likeButton() {
+  return getElement("like")
+}
+
+function dislikeButton() {
+  return getElement("dislike");
 }
 
 function closeButton() {
@@ -58,6 +68,8 @@ function getTargetContent() {
 function updateButtons() {
   nextResultButton().disabled = gResultCount === 0
   previousResultButton().disabled = gResultCount === 0
+  likeButton().disabled = gResultCount === 0
+  dislikeButton().disabled = gResultCount === 0
   resultCounter().innerText = (gCurrentResult === null ? 0 : gCurrentResult + 1) + "/" + gResultCount
 }
 
@@ -222,7 +234,7 @@ async function onSearchButtonClicked() {
   }
 
   try {
-    const response = await fetch(SERVER_URL, {
+    const response = await fetch(SERVER_URL + '/search', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -289,11 +301,44 @@ function onNextResult() {
   selectResult(gCurrentResult)
 }
 
+async function sendUserFeedback(resultIndex, liked) {
+  try {
+    const postData = {
+      resultIndex,
+      liked,
+      sessionId,
+    }
+    const response = await fetch(SERVER_URL + '/rate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(postData),
+    })
+    const jsonResponse = await response.json()
+
+    console.log('Got response from server: ', jsonResponse)
+  } catch (e) {
+    console.log(e)
+    messages().innerText = 'Could not send user feedback to server due to an error. Please try again.'
+  }
+}
+
+function onLike() {
+  sendUserFeedback(gCurrentResult, true);
+}
+
+function onDislike() {
+  sendUserFeedback(gCurrentResult, false);
+}
+
 window.onload = () => {
   searchBox().addEventListener('keyup', onSearchTextTyped)
   searchBox().addEventListener('search', onSearch)
   previousResultButton().addEventListener('click', onPreviousResult)
   nextResultButton().addEventListener('click', onNextResult)
+  likeButton().addEventListener('click', onLike)
+  dislikeButton().addEventListener('click', onDislike)
   closeButton().addEventListener('click', onClose)
   updateButtons()
 }

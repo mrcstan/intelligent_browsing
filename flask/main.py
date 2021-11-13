@@ -15,6 +15,23 @@ from gensim.summarization.textcleaner import get_sentences
 "HTML templates rendered with Jinja, introduced later, will do this automatically."
 #from markupsafe import escape
 
+USER_RATINGS = {}
+
+@app.route('/rate', methods=['POST'])
+def rating():
+    if request.method == 'POST':
+        request_data = request.get_json()
+
+        result_index = request_data['resultIndex']
+        liked = request_data['liked']
+        session_id = request_data['sessionId']
+
+        if session_id not in USER_RATINGS:
+            USER_RATINGS[session_id] = {}
+        USER_RATINGS[session_id][result_index] = liked
+        print('user ratings: ', USER_RATINGS)
+
+    return jsonify({ 'status': 'success' })
 
 @app.route('/search', methods=['POST'])
 def words():
