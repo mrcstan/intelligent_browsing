@@ -2,11 +2,7 @@
 <!-- for testing the highlighting code-->
 <html>
   <head>
-    <style type="text/css">
-      .XxXIntelligentSearchHighlight {
-        background-color: aquamarine;
-      }
-    </style>
+    <link rel="stylesheet" href="./highlight.css">
 
     <script src="./dom.js"></script>
 
@@ -24,13 +20,18 @@
         } else {
           var el = document.getElementById("2")
 
-          highlight(el.firstChild, [
-            [2, 4],
-            [5, 7],
-            [10, 12],
-            // [18, 20],
-            // [29, 31]
-          ])
+          highlight(el.firstChild,
+          [
+            [0, 23],
+            [46, 81],
+            [82, 119]
+          ],
+          [
+            [[2, 4], [5, 7]],
+            [[0, 2], [5, 7], [29, 31]],
+            [[3, 5], [28, 30]]
+          ]
+          )
           highlighted = true
         }
       }
@@ -39,6 +40,6 @@
   </head>
   <body>
     <button onclick="toggleHighlights()">Highlight</button>
-    <p id="2">This is this <b>a</b> fun</p>
+    <p id="2">This is a fun sentence. I don't have matches. Is this another fun sentence is it? It is fun to be a sentence, isn't it?</p>
   </body>
 </html>

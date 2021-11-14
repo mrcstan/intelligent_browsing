@@ -77,9 +77,9 @@ function updateButtons() {
  * Highlights results in the target tab's DOM.
  */
 function highlightResults(results) {
-  /* results looks like:
+  /* results looks like (wordOffsets are optional)
 [
-  { index: 0, offsets: [2, 5]},
+  { index: 0, offsets: [2, 5], wordOffsets: [[1, 2], [3, 4]]},
   { index: 15, offsets: [4, 7]},
   { index: 15, offsets: [121, 124]},
   { index: 0, offsets: [3, 6]}
@@ -109,6 +109,7 @@ function highlightResults(results) {
       0: [
         {
           offsets: [2, 5],
+          wordOffsets: [[...]],
         },
         {
           offsets: [3, 6],
@@ -134,6 +135,10 @@ function highlightResults(results) {
     }
 
     const obj = { offsets: result.offsets }
+    if (result.hasOwnProperty('wordOffsets')) {
+      obj.wordOffsets = result.wordOffsets
+    }
+
     indexedOffsets[key].push(obj)
     rankedOffsets[rank] = obj
     rank++
@@ -144,7 +149,9 @@ function highlightResults(results) {
   for (const [index, info] of Object.entries(indexedOffsets)) {
     // Sort info by the first offset.
     info.sort((a, b) => a.offsets[0] - b.offsets[0])
-    const spans = highlight(text_nodes[index], info.map(v => v.offsets))
+
+    const spans = highlight(text_nodes[index], info.map(v => v.offsets),
+      info.map(v => v.hasOwnProperty('wordOffsets') ? v.wordOffsets : []))
     for (var i = 0; i < info.length; i++) {
       info[i].span = spans[i]
     }

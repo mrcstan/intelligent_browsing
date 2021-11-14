@@ -60,16 +60,23 @@ function clearHighlights() {
   }
 }
 
+
 // Given a text node, highlight all text at matching offsets.
-function highlight(originalNode, offsets) {
+function highlight(originalNode, offsets, wordOffsets, highlightClass = "XxXIntelligentSearchHighlight") {
 
   var spans = []
   var currentNode = originalNode
   var subtracted = 0
+  var i = 0
   for (var offset of offsets) {
     var offsetWithinNode = offset[0] - subtracted
+    if (offsetWithinNode < 0 || offsetWithinNode >= currentNode.textContent.length) {
+      // We can't continue highlighting, because all subsequent offsets
+      // are corrupt.
+      break
+    }
 
-    var newNode = currentNode.splitText(offset[0] - subtracted)
+    var newNode = currentNode.splitText(offsetWithinNode)
     subtracted += offsetWithinNode
 
     currentNode = newNode
@@ -77,13 +84,20 @@ function highlight(originalNode, offsets) {
     subtracted += offset[1] - offset[0]
 
     var highlightSpan = document.createElement("span")
-    highlightSpan.className = "XxXIntelligentSearchHighlight"
+    highlightSpan.className = highlightClass
     highlightSpan.textContent = currentNode.textContent
     spans.push(highlightSpan)
     currentNode.parentNode.insertBefore(highlightSpan, currentNode)
     currentNode.parentNode.removeChild(currentNode)
 
+    if (wordOffsets) {
+      if (wordOffsets[i].length > 0) {
+        highlight(highlightSpan.firstChild, wordOffsets[i], undefined, "XxXIntelligentSearchWord")
+      }
+    }
+
     currentNode = newNode
+    i += 1
   }
 
   return spans
