@@ -69,10 +69,14 @@ function highlight(originalNode, offsets, wordOffsets, highlightClass = "XxXInte
   var subtracted = 0
   var i = 0
   for (var offset of offsets) {
-    console.log("Offset " + i, offset)
     var offsetWithinNode = offset[0] - subtracted
+    if (offsetWithinNode < 0 || offsetWithinNode >= currentNode.textContent.length) {
+      // We can't continue highlighting, because all subsequent offsets
+      // are corrupt.
+      break
+    }
 
-    var newNode = currentNode.splitText(offset[0] - subtracted)
+    var newNode = currentNode.splitText(offsetWithinNode)
     subtracted += offsetWithinNode
 
     currentNode = newNode
