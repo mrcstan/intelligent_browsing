@@ -22,13 +22,16 @@ def rating():
     if request.method == 'POST':
         request_data = request.get_json()
 
+        url = request_data['url']
+        query = request_data['query']
         result_index = request_data['resultIndex']
         liked = request_data['liked']
-        session_id = request_data['sessionId']
 
-        if session_id not in USER_RATINGS:
-            USER_RATINGS[session_id] = {}
-        USER_RATINGS[session_id][result_index] = liked
+        if url not in USER_RATINGS:
+            USER_RATINGS[url] = {}
+        if query not in USER_RATINGS[url]:
+            USER_RATINGS[url][query] = {}
+        USER_RATINGS[url][query][result_index] = liked
         print('user ratings: ', USER_RATINGS)
 
     return jsonify({ 'status': 'success' })

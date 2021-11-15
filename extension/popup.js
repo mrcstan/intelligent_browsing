@@ -1,7 +1,5 @@
 const SERVER_URL = 'http://localhost:8080';
 
-const sessionId = Math.random();
-
 gCurrentResult = null
 gResultCount = 0
 gLastSearchText = null
@@ -310,10 +308,17 @@ function onNextResult() {
 
 async function sendUserFeedback(resultIndex, liked) {
   try {
+    const activeTab = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+    const url = activeTab[0].url;
+    const query = gLastSearchText;
     const postData = {
+      url,
+      query,
       resultIndex,
       liked,
-      sessionId,
     }
     const response = await fetch(SERVER_URL + '/rate', {
       method: 'POST',
