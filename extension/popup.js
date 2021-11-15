@@ -165,11 +165,11 @@ function highlightResults(results) {
 // Selects the text content of an element and scrolls it into view
 function selectResultImpl(index) {
   const element = gResultSpans[index]
-  selection = window.getSelection()
-  range = document.createRange()
-  range.selectNodeContents(element)
-  selection.removeAllRanges()
-  selection.addRange(range)
+  // selection = window.getSelection()
+  // range = document.createRange()
+  // range.selectNodeContents(element)
+  // selection.removeAllRanges()
+  // selection.addRange(range)
 
   element.scrollIntoView({
     behavior: 'auto',
