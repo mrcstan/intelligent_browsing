@@ -7,16 +7,27 @@ function walkNodes(treeWalker, nodeFunction) {
   }
 }
 
+function isVisible(textNode) {
+  if (textNode.parentElement) {
+    const rect = textNode.parentElement.getBoundingClientRect()
+    return rect.width > 0 && rect.height > 0
+  }
+  return false
+}
+
 function walkTextNodes(nodeFunction) {
   // Filters out nodes that only contain whitespace and nodes that
-  // are children of EXCLUDE_ELEMENTS
+  // are children of EXCLUDE_ELEMENTS, and children that are not
+  // visible in the browser viewport.
   const filter = {
     acceptNode: function (node) {
       if (/\S/.test(node.data)) {
         if (
           !EXCLUDE_ELEMENTS.includes(node.parentNode.nodeName.toLowerCase())
         ) {
-          return NodeFilter.FILTER_ACCEPT
+          if (isVisible(node)) {
+            return NodeFilter.FILTER_ACCEPT
+          }
         }
       }
     },
