@@ -42,20 +42,84 @@ def words():
     if request.method == 'POST':
         request_data = request.get_json()
         query = request_data['search_text']
-        documents = request_data['doc_content']['text_nodes']
+        text_nodes = request_data['doc_content']['text_nodes']
         #custom_filters = [remove_stopwords, stem_text]
         custom_filters = [stem_text]
         #custom_filters = []
 
-        result = intelligent_matching(query, documents, custom_filters=custom_filters)
+        result = rank_sentences_on_query(query, text_nodes, custom_filters=custom_filters)
         print('result: ', result)
 
     return jsonify(result)
 
 
-def intelligent_matching(query, text_nodes, custom_filters=[]):
+def rank_sentences_on_query(query, text_nodes, custom_filters=[]):
 
     #print('query: ', query)
+    query_bow, doc_bow, query_tokens, doc_tokens, documents, map_to_text_node = get_query_document_bow(query, text_nodes, custom_filters=[])
+
+    #print('doc_bow: ', doc_bow)
+    #print('query_bow: ', query_bow)
+
+    bm25obj = bm25.BM25(doc_bow, b=0.0)
+    print('k1=', bm25obj.k1, ', b=', bm25obj.b)
+
+    #model = TfidfModel(doc_bow)  # fit model
+    #vector = model[query_bow]  # apply model to the first corpus document
+    #print('model = ', model)
+    #print('vector = ', vector)
+
+    result = []
+    if len(query_bow):
+        scores = bm25obj.get_scores(query_bow)
+        rank_doc_inds = np.argsort(scores)[::-1]
+
+        for ii, ind in enumerate(rank_doc_inds):
+
+            # jsonify does not recognize numpy object/int
+            # cast number as int
+            ind = int(ind); # document index
+
+            # skip document with ranking score = 0
+            # breaking out of the loop assumes that the
+            # scores are ordered from highest to lowest
+            if scores[ind] == 0:
+                break
+
+            #print('rank=', ii, ', ind=', ind, ', score=', scores[ind], 'ranked doc=', documents[ind])
+
+            word_offsets = match_word_in_document(documents[ind], query_tokens)
+
+            # return the entire sentence
+            node_ind = map_to_text_node[ind][0]
+            offset = map_to_text_node[ind][1]
+            result.append({
+                'index': node_ind,
+                'offsets': [offset, offset+len(documents[ind])],
+                'wordOffsets': word_offsets
+            })
+
+    return result
+
+
+def get_query_document_bow(query, text_nodes, custom_filters=[]):
+
+    documents, map_to_text_node = split_text_nodes_into_sentences(text_nodes)
+    print('documents: ', documents)
+
+    query_tokens = preprocess_query(query, custom_filters)
+
+    doc_tokens = preprocess_documents(documents, custom_filters)
+
+    dictionary = Dictionary(doc_tokens)
+
+    doc_bow = [dictionary.doc2bow(text) for text in doc_tokens]
+    query_bow = dictionary.doc2bow(query_tokens)
+
+    return query_bow, doc_bow, query_tokens, doc_tokens, documents, map_to_text_node
+
+
+def split_text_nodes_into_sentences(text_nodes):
 
     documents = []
     map_to_text_node = []
@@ -75,74 +139,40 @@ def intelligent_matching(query, text_nodes, custom_filters=[]):
             offset = text_node.find(sentence)
             map_to_text_node.append([node_ind, offset])
 
-    print('documents: ', documents)
+    return documents, map_to_text_node
+
+
+def preprocess_query(query, custom_filters=[]):
 
     query_tokens = list(tokenize(query, lower=True))
-
     query_tokens = preprocess_string(" ".join(query_tokens), custom_filters)
     print('query_tokens: ', query_tokens)
+
+    return query_tokens
+
+
+def preprocess_documents(documents, custom_filters=[]):
 
     doc_tokens = [list(tokenize(doc, lower=True)) for doc in documents]
     doc_tokens = [preprocess_string(" ".join(doc), custom_filters) for doc in doc_tokens]
     #print('doc_tokens: ', doc_tokens)
 
-    dictionary = Dictionary(doc_tokens)
+    return doc_tokens
 
-    doc_bow = [dictionary.doc2bow(text) for text in doc_tokens]
-    query_bow = dictionary.doc2bow(query_tokens)
 
-    #print('doc_bow: ', doc_bow)
-    #print('query_bow: ', query_bow)
+# Provide the offsets of matching words in a document
+def match_word_in_document(document, query_tokens):
 
-    bm25obj = bm25.BM25(doc_bow, b=0.0)
-    print('k1=', bm25obj.k1, ', b=', bm25obj.b)
+    word_offsets = []
 
-    model = TfidfModel(doc_bow)  # fit model
-    vector = model[query_bow]  # apply model to the first corpus document
-    print('model = ', model)
-    print('vector = ', vector)
+    for single_word_query in query_tokens:
+        # index of first character in text node matching the query
+        ind_char = document.lower().find(single_word_query);  # find returns -1 if substring not found
+        if ind_char == -1:
+            continue
+        word_offsets.append([ind_char, ind_char + len(single_word_query)])
 
-    result = []
-    if len(query_bow):
-        scores = bm25obj.get_scores(query_bow)
-        rank_doc_inds = np.argsort(scores)[::-1]
-        #rank_doc_inds = np.arange(0, len(scores))[::-1]
-
-        for ii, ind in enumerate(rank_doc_inds):
-
-            # json does not recognize numpy object/int
-            # cast number as int
-            ind = int(ind); # document index
-
-            # skip document with ranking score = 0
-            # breaking out of the loop assumes that the
-            # scores are ordered from highest to lowest
-            if scores[ind] == 0:
-                break
-
-            #print('rank=', ii, ', ind=', ind, ', score=', scores[ind], 'ranked doc=', documents[ind])
-
-            word_offsets = []
-
-            for single_word_query in query_tokens:
-                # index of first character in text node matching the query
-                ind_char = documents[ind].lower().find(single_word_query); # find returns -1 if substring not found
-                if ind_char == -1:
-                    continue
-                word_offsets.append([ind_char, ind_char + len(single_word_query)])
-
-            # returns the entire text node
-            #result.append({'index': ind, 'offsets': [0, len(documents[ind])]})
-            # return the entire sentence
-            node_ind = map_to_text_node[ind][0]
-            offset = map_to_text_node[ind][1]
-            result.append({
-                'index': node_ind,
-                'offsets': [offset, offset+len(documents[ind])],
-                'wordOffsets': word_offsets
-            })
-
-    return result
+    return word_offsets
 
 
 if __name__ == "__main__":
