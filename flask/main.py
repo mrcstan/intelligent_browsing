@@ -1,22 +1,15 @@
+from gensim.parsing.preprocessing import remove_stopwords, stem_text
+from IntelligentMatch import IntelligentMatch
 from flask import Flask, jsonify, request
 app = Flask(__name__)
-
-import numpy as np
-from gensim.summarization import bm25
-from gensim.models import TfidfModel
-
-# https://stackoverflow.com/questions/50009030/correct-way-of-using-phrases-and-preprocess-string-gensim
-from gensim.parsing.preprocessing import preprocess_string, remove_stopwords, stem_text
-from gensim.utils import tokenize
-from gensim.corpora import Dictionary
-from gensim.summarization.textcleaner import get_sentences
 
 "When returning HTML (the default response type in Flask), " \
 "any user-provided values rendered in the output must be escaped to protect from injection attacks. " \
 "HTML templates rendered with Jinja, introduced later, will do this automatically."
-#from markupsafe import escape
+# from markupsafe import escape
 
 USER_RATINGS = {}
+
 
 @app.route('/rate', methods=['POST'])
 def rating():
@@ -35,7 +28,8 @@ def rating():
         USER_RATINGS[url][query][result_index] = liked
         print('user ratings: ', USER_RATINGS)
 
-    return jsonify({ 'status': 'success' })
+    return jsonify({'status': 'success'})
+
 
 @app.route('/search', methods=['POST'])
 def words():
@@ -43,137 +37,17 @@ def words():
         request_data = request.get_json()
         query = request_data['search_text']
         text_nodes = request_data['doc_content']['text_nodes']
-        #custom_filters = [remove_stopwords, stem_text]
+        # custom_filters = [remove_stopwords, stem_text]
         custom_filters = [stem_text]
-        #custom_filters = []
+        # custom_filters = []
 
-        result = rank_sentences_on_query(query, text_nodes, custom_filters=custom_filters)
+        intelliMatch = IntelligentMatch(query, text_nodes, custom_filters=custom_filters)
+        intelliMatch.initialize()
+        result = intelliMatch.rank()
         print('result: ', result)
 
     return jsonify(result)
 
 
-def rank_sentences_on_query(query, text_nodes, custom_filters=[]):
-
-    #print('query: ', query)
-    query_bow, doc_bow, query_tokens, doc_tokens, documents, map_to_text_node = get_query_document_bow(query, text_nodes, custom_filters=[])
-
-    #print('doc_bow: ', doc_bow)
-    #print('query_bow: ', query_bow)
-
-    bm25obj = bm25.BM25(doc_bow, b=0.0)
-    print('k1=', bm25obj.k1, ', b=', bm25obj.b)
-
-    #model = TfidfModel(doc_bow)  # fit model
-    #vector = model[query_bow]  # apply model to the first corpus document
-    #print('model = ', model)
-    #print('vector = ', vector)
-
-    result = []
-    if len(query_bow):
-        scores = bm25obj.get_scores(query_bow)
-        rank_doc_inds = np.argsort(scores)[::-1]
-
-        for ii, ind in enumerate(rank_doc_inds):
-
-            # jsonify does not recognize numpy object/int
-            # cast number as int
-            ind = int(ind); # document index
-
-            # skip document with ranking score = 0
-            # breaking out of the loop assumes that the
-            # scores are ordered from highest to lowest
-            if scores[ind] == 0:
-                break
-
-            #print('rank=', ii, ', ind=', ind, ', score=', scores[ind], 'ranked doc=', documents[ind])
-
-            word_offsets = match_word_in_document(documents[ind], query_tokens)
-
-            # return the entire sentence
-            node_ind = map_to_text_node[ind][0]
-            offset = map_to_text_node[ind][1]
-            result.append({
-                'index': node_ind,
-                'offsets': [offset, offset+len(documents[ind])],
-                'wordOffsets': word_offsets
-            })
-
-    return result
-
-
-def get_query_document_bow(query, text_nodes, custom_filters=[]):
-
-    documents, map_to_text_node = split_text_nodes_into_sentences(text_nodes)
-    print('documents: ', documents)
-
-    query_tokens = preprocess_query(query, custom_filters)
-
-    doc_tokens = preprocess_documents(documents, custom_filters)
-
-    dictionary = Dictionary(doc_tokens)
-
-    doc_bow = [dictionary.doc2bow(text) for text in doc_tokens]
-    query_bow = dictionary.doc2bow(query_tokens)
-
-    return query_bow, doc_bow, query_tokens, doc_tokens, documents, map_to_text_node
-
-
-def split_text_nodes_into_sentences(text_nodes):
-
-    documents = []
-    map_to_text_node = []
-    print('text nodes', text_nodes)
-    for node_ind, text_node in enumerate(text_nodes):
-        # replace new line character with space to prevent
-        # get_sentences from splitting the text nodes at new line characters
-        # needed for website that has \n within sentences such as
-        # https://numpy.org/doc/stable/reference/generated/numpy.intersect1d.html
-        text_node = text_node.replace('\n', ' ')
-
-        # get_sentences extract sentences based on pattern set in RE_SENTENCE
-        # by default,  gensim.summarization.textcleaner.RE_SENTENCE
-        #  == re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
-        for sentence in get_sentences(text_node):
-            documents.append(sentence)
-            offset = text_node.find(sentence)
-            map_to_text_node.append([node_ind, offset])
-
-    return documents, map_to_text_node
-
-
-def preprocess_query(query, custom_filters=[]):
-
-    query_tokens = list(tokenize(query, lower=True))
-    query_tokens = preprocess_string(" ".join(query_tokens), custom_filters)
-    print('query_tokens: ', query_tokens)
-
-    return query_tokens
-
-
-def preprocess_documents(documents, custom_filters=[]):
-
-    doc_tokens = [list(tokenize(doc, lower=True)) for doc in documents]
-    doc_tokens = [preprocess_string(" ".join(doc), custom_filters) for doc in doc_tokens]
-    #print('doc_tokens: ', doc_tokens)
-
-    return doc_tokens
-
-
-# Provide the offsets of matching words in a document
-def match_word_in_document(document, query_tokens):
-
-    word_offsets = []
-
-    for single_word_query in query_tokens:
-        # index of first character in text node matching the query
-        ind_char = document.lower().find(single_word_query);  # find returns -1 if substring not found
-        if ind_char == -1:
-            continue
-        word_offsets.append([ind_char, ind_char + len(single_word_query)])
-
-    return word_offsets
-
-
 if __name__ == "__main__":
-  app.run(debug=True, port=8080)
+    app.run(debug=True, port=8080)
