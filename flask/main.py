@@ -3,6 +3,7 @@ app = Flask(__name__)
 
 import numpy as np
 from gensim.summarization import bm25
+from gensim.models import TfidfModel
 
 # https://stackoverflow.com/questions/50009030/correct-way-of-using-phrases-and-preprocess-string-gensim
 from gensim.parsing.preprocessing import preprocess_string, remove_stopwords, stem_text
@@ -77,9 +78,9 @@ def intelligent_matching(query, text_nodes, custom_filters=[]):
     print('documents: ', documents)
 
     query_tokens = list(tokenize(query, lower=True))
-    print(query_tokens)
+
     query_tokens = preprocess_string(" ".join(query_tokens), custom_filters)
-    #print('query_tokens: ', query_tokens)
+    print('query_tokens: ', query_tokens)
 
     doc_tokens = [list(tokenize(doc, lower=True)) for doc in documents]
     doc_tokens = [preprocess_string(" ".join(doc), custom_filters) for doc in doc_tokens]
@@ -93,27 +94,36 @@ def intelligent_matching(query, text_nodes, custom_filters=[]):
     #print('doc_bow: ', doc_bow)
     #print('query_bow: ', query_bow)
 
-    bm25obj = bm25.BM25(doc_bow)
+    bm25obj = bm25.BM25(doc_bow, b=0.0)
+    print('k1=', bm25obj.k1, ', b=', bm25obj.b)
+
+    model = TfidfModel(doc_bow)  # fit model
+    vector = model[query_bow]  # apply model to the first corpus document
+    print('model = ', model)
+    print('vector = ', vector)
+
     result = []
     if len(query_bow):
         scores = bm25obj.get_scores(query_bow)
-        rank_doc_inds = np.argsort(scores)
+        rank_doc_inds = np.argsort(scores)[::-1]
         #rank_doc_inds = np.arange(0, len(scores))[::-1]
 
-        for ii in range(len(rank_doc_inds)-1, -1, -1):
+        for ii, ind in enumerate(rank_doc_inds):
 
             # json does not recognize numpy object/int
             # cast number as int
-            ind = int(rank_doc_inds[ii]); # document index
+            ind = int(ind); # document index
 
             # skip document with ranking score = 0
             # breaking out of the loop assumes that the
             # scores are ordered from highest to lowest
             if scores[ind] == 0:
-                continue
+                break
+
+            #print('rank=', ii, ', ind=', ind, ', score=', scores[ind], 'ranked doc=', documents[ind])
 
             word_offsets = []
-            #print('score = ', scores[ind])
+
             for single_word_query in query_tokens:
                 # index of first character in text node matching the query
                 ind_char = documents[ind].lower().find(single_word_query); # find returns -1 if substring not found
