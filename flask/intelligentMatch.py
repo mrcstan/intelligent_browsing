@@ -1,6 +1,6 @@
 import numpy as np
 from gensim.summarization import bm25
-from gensim.models import TfidfModel
+import plnVSM
 
 # https://stackoverflow.com/questions/50009030/correct-way-of-using-phrases-and-preprocess-string-gensim
 from gensim.parsing.preprocessing import preprocess_string
@@ -11,7 +11,7 @@ from gensim.summarization.textcleaner import get_sentences
 
 class IntelligentMatch:
 
-    def __init__(self, query, text_nodes, custom_filters=[]):
+    def __init__(self, query, text_nodes, ranker='BM25', custom_filters=[]):
         self.query = query
         self.text_nodes = text_nodes
         self.custom_filters = custom_filters
@@ -25,6 +25,7 @@ class IntelligentMatch:
         self.scores = []
         self.rank_doc_inds = []
         self.result = []
+        self.ranker = ranker
 
     def initialize(self):
         self.split_text_nodes_into_sentences()
@@ -38,20 +39,16 @@ class IntelligentMatch:
         self.result = []
 
     def rank(self):
-
-        # print('doc_bow: ', doc_bow)
-        # print('query_bow: ', query_bow)
-        bm25obj = bm25.BM25(self.doc_bow, b=0.0)
-        print('k1=', bm25obj.k1, ', b=', bm25obj.b)
-
-        # model = TfidfModel(doc_bow)  # fit model
-        # vector = model[query_bow]  # apply model to the first corpus document
-        # print('model = ', model)
-        # print('vector = ', vector)
+        if self.ranker == 'BM25':
+            ranker = bm25.BM25(self.doc_bow, b=0.0)
+        elif self.ranker== 'PLNVSM':
+            ranker = plnVSM.PLNVSM(self.doc_bow, b=0.0)
+        else:
+            raise Exception('Unknown ranker')
 
         self.result = []
         if len(self.query_bow):
-            self.scores = bm25obj.get_scores(self.query_bow)
+            self.scores = ranker.get_scores(self.query_bow)
             self.rank_doc_inds = np.argsort(self.scores)[::-1]
 
             for ii, ind in enumerate(self.rank_doc_inds):

@@ -1,5 +1,5 @@
 from gensim.parsing.preprocessing import remove_stopwords, stem_text
-from IntelligentMatch import IntelligentMatch
+from intelligentMatch import IntelligentMatch
 from flask import Flask, jsonify, request
 app = Flask(__name__)
 
@@ -37,11 +37,12 @@ def words():
         request_data = request.get_json()
         query = request_data['search_text']
         text_nodes = request_data['doc_content']['text_nodes']
-        # custom_filters = [remove_stopwords, stem_text]
+
         custom_filters = [stem_text]
         # custom_filters = []
-
-        intelliMatch = IntelligentMatch(query, text_nodes, custom_filters=custom_filters)
+        # ranker = 'BM25' or 'PLNVSM'
+        ranker = 'PLNVSM'
+        intelliMatch = IntelligentMatch(query, text_nodes, ranker=ranker, custom_filters=custom_filters)
         intelliMatch.initialize()
         result = intelliMatch.rank()
         print('result: ', result)
