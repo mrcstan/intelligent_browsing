@@ -4,11 +4,19 @@ from os.path import isfile
 pd.set_option('display.max_columns', None, 'expand_frame_repr', False)
 
 class Rating:
-    def __init__(self, json_data):
+    def __init__(self, json_data, topK=5):
+        '''
+        :param json_data:
+            assume json_data format is in the following form
+            json_data[url][query][rank] = relevance
+        :param topK:
+             topK ranks to be used for calculating average precision
+        '''
         self.json_data = json_data
         self.df = self.json2data_frame(json_data)
         self.group_average_precisions = []
         self.mean_average_precision = 0
+        self.topK = topK
 
     def json2data_frame(self, json_data):
         data_list = []
@@ -30,37 +38,18 @@ class Rating:
     def write_precisions_to_file(self, file_path):
         self.write_data_frame_to_file(file_path, self.group_average_precisions)
         with open(file_path, 'a') as outfile:
-            outfile.write('\n Mean average precision: ' + str(self.mean_average_precision))
-
-    # def calculate_average_precision(self, relevances):
-    #     '''
-    #     :param relevances:
-    #         list of boolean indicating whether document is relevant or not starting from the highest ranked document
-    #         to the lowest ranked document
-    #     :return:
-    #         average_precision
-    #     '''
-    #     if len(relevances) == 0:
-    #         return 0
-    #
-    #     precision = 0
-    #     count_relevant = 0
-    #     for count, relevance in enumerate(relevances):
-    #         if relevance:
-    #             count_relevant += 1
-    #             precision += count_relevant/(count+1)
-    #
-    #     return precision/count_relevant
+            outfile.write('\n Top {0} mean average precision: {1}'.format(self.topK, self.mean_average_precision))
 
     def sort_data_frame(self):
         self.df.sort_values(by=['Website', 'Query', 'Rank'], inplace=True)
 
-    def calculate_average_precision(self, df_rank_relevance, topK=5):
+    def calculate_average_precision(self, df_rank_relevance):
         '''
         :param df_rank_relevance:
             data frame containing the ranking of the matches and the relevance of the ranking
             0 is assumed to have the highest rank
             data frame will be sorted in ascending order of the ranking before calculating the average precision
+            only the topK ranks will be used to calculate average precision
         :return:
             average_precision
         '''
@@ -71,7 +60,7 @@ class Rating:
         count_relevant = 0
         df_rank_relevance.sort_values(by=['Rank'], inplace=True)
         for ind, row in df_rank_relevance.iterrows():
-            if row['Rank'] >= topK:
+            if row['Rank'] >= self.topK:
                 break
             if row['Relevance']:
                 count_relevant += 1

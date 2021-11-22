@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from gensim.parsing.preprocessing import remove_stopwords, stem_text
 from intelligentMatch import IntelligentMatch
+import os
 from rating import Rating
 
 app = Flask(__name__)
@@ -29,11 +30,14 @@ def rating():
             USER_RATINGS[url][query] = {}
         USER_RATINGS[url][query][result_index] = liked
         #print('user ratings: ', USER_RATINGS)
-        rating = Rating(USER_RATINGS)
-        rating.write_ratings_to_file('../rating_log/ratings.csv')
+        rating = Rating(USER_RATINGS, topK=3)
+        print(rating.df)
+        rating_out_dir = '../ratings'
+        os.makedirs('../ratings', exist_ok=True)
+        rating.write_ratings_to_file(rating_out_dir+'/ratings.csv')
         rating.calculate_mean_AP()
         print('Mean average precision: ', rating.mean_average_precision)
-        rating.write_precisions_to_file('../rating_log/precisions.csv')
+        rating.write_precisions_to_file(rating_out_dir+'/precisions.csv')
 
     return jsonify({'status': 'success'})
 
