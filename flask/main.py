@@ -37,6 +37,8 @@ def words():
         request_data = request.get_json()
         query = request_data['search_text']
         text_nodes = request_data['doc_content']['text_nodes']
+        ranker = request_data['ranking_method']
+        print(ranker)
 
         custom_filters = [stem_text]
         # custom_filters = []

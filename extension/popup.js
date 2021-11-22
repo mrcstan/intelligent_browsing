@@ -13,6 +13,10 @@ function searchBox() {
   return getElement('SearchBox')
 }
 
+function rankingMethod() {
+  return document.querySelector('input[name=Ranker]:checked').value;
+}
+
 function messages() {
   return getElement('Messages')
 }
@@ -236,6 +240,7 @@ async function onSearchButtonClicked() {
   const postData = {
     search_text: searchText,
     doc_content: resultValue,
+    ranking_method: rankingMethod(),
   }
 
   try {

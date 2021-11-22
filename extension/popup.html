@@ -20,6 +20,15 @@
         <i class="fas fa-times"></i>
       </button>
     </div>
+    <div class="Ranker">
+      <span>Ranking method: </span>
+      <input type="radio" id="rankerBM25" name="Ranker" value="BM25" />
+      <label for="rankerBM25">BM25</label>
+      <input type="radio" id="rankerPLNVSM" name="Ranker" value="PLNVSM" />
+      <label for="rankerPLNVSM">PLNVSM</label>
+      <input type="radio" id="rankerExactMatch" name="Ranker" value="Exact Match" />
+      <label for="rankerExactMatch">Exact Match</label>
+    </div>
     <div class="Rating">
       <span>Is this result relevant?</span>
       <button id="like">

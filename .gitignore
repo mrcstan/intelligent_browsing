@@ -1,2 +1,3 @@
 **/.DS_Store
 flask/__pycache__
+.vscode/
