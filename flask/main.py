@@ -1,6 +1,9 @@
+from flask import Flask, jsonify, request
 from gensim.parsing.preprocessing import remove_stopwords, stem_text
 from intelligentMatch import IntelligentMatch
-from flask import Flask, jsonify, request
+import os
+from rating import Rating
+
 app = Flask(__name__)
 
 "When returning HTML (the default response type in Flask), " \
@@ -26,7 +29,15 @@ def rating():
         if query not in USER_RATINGS[url]:
             USER_RATINGS[url][query] = {}
         USER_RATINGS[url][query][result_index] = liked
-        print('user ratings: ', USER_RATINGS)
+        #print('user ratings: ', USER_RATINGS)
+        rating = Rating(USER_RATINGS, topK=3)
+        print(rating.df)
+        rating_out_dir = '../ratings'
+        os.makedirs('../ratings', exist_ok=True)
+        rating.write_ratings_to_file(rating_out_dir+'/ratings.csv')
+        rating.calculate_mean_AP()
+        print('Mean average precision: ', rating.mean_average_precision)
+        rating.write_precisions_to_file(rating_out_dir+'/precisions.csv')
 
     return jsonify({'status': 'success'})
 
@@ -43,11 +54,12 @@ def words():
         custom_filters = [stem_text]
         # custom_filters = []
         # ranker = 'BM25' or 'PLNVSM'
-        ranker = 'PLNVSM'
+        #ranker = 'BM25'
+
         intelliMatch = IntelligentMatch(query, text_nodes, ranker=ranker, custom_filters=custom_filters)
         intelliMatch.initialize()
         result = intelliMatch.rank()
-        print('result: ', result)
+        #print('result: ', result)
 
     return jsonify(result)
 

@@ -1,12 +1,13 @@
-import numpy as np
-from gensim.summarization import bm25
-import plnVSM
-
+from gensim.corpora import Dictionary
 # https://stackoverflow.com/questions/50009030/correct-way-of-using-phrases-and-preprocess-string-gensim
 from gensim.parsing.preprocessing import preprocess_string
-from gensim.utils import tokenize
-from gensim.corpora import Dictionary
+# gensim.summarization is only available in gensim 3.8.3 or older
+from gensim.summarization import bm25
 from gensim.summarization.textcleaner import get_sentences
+from gensim.utils import tokenize
+import plnVSM
+
+import numpy as np
 
 
 class IntelligentMatch:
