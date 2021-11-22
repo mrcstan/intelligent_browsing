@@ -23,7 +23,6 @@ class IntelligentMatch:
         self.dictionary = []
         self.query_bow = []
         self.doc_bow = []
-        self.scores = []
         self.rank_doc_inds = []
         self.result = []
         self.ranker = ranker
@@ -40,17 +39,23 @@ class IntelligentMatch:
         self.result = []
 
     def rank(self):
-        if self.ranker == 'BM25':
-            ranker = bm25.BM25(self.doc_bow, b=0.0)
-        elif self.ranker== 'PLNVSM':
-            ranker = plnVSM.PLNVSM(self.doc_bow, b=0.0)
-        else:
-            raise Exception('Unknown ranker')
-
         self.result = []
         if len(self.query_bow):
-            self.scores = ranker.get_scores(self.query_bow)
-            self.rank_doc_inds = np.argsort(self.scores)[::-1]
+            if self.ranker == 'BM25':
+                ranker = bm25.BM25(self.doc_bow, b=0.0)
+                scores = ranker.get_scores(self.query_bow)
+                self.rank_doc_inds = np.argsort(scores)[::-1]
+            elif self.ranker == 'PLNVSM':
+                ranker = plnVSM.PLNVSM(self.doc_bow, b=0.0)
+                scores = ranker.get_scores(self.query_bow)
+                self.rank_doc_inds = np.argsort(scores)[::-1]
+            elif self.ranker == 'Exact Match':
+                clean_query = ' '.join(self.query_tokens)
+                clean_documents = [' '.join(doc_token) for doc_token in self.doc_tokens]
+                scores = [1 if clean_query in doc else 0 for doc in clean_documents]
+                self.rank_doc_inds = np.where(scores)[0]
+            else:
+                raise Exception('Unknown ranker')
 
             for ii, ind in enumerate(self.rank_doc_inds):
 
@@ -61,7 +66,7 @@ class IntelligentMatch:
                 # skip document with ranking score = 0
                 # breaking out of the loop assumes that the
                 # scores are ordered from highest to lowest
-                if self.scores[ind] == 0:
+                if scores[ind] == 0:
                     break
 
                 # print('rank=', ii, ', ind=', ind, ', score=', scores[ind], 'ranked doc=', documents[ind])
@@ -82,7 +87,7 @@ class IntelligentMatch:
     def split_text_nodes_into_sentences(self):
         self.documents = []
         self.map_to_text_node = []
-        print('text nodes', self.text_nodes)
+
         for node_ind, text_node in enumerate(self.text_nodes):
             # replace new line character with space to prevent
             # get_sentences from splitting the text nodes at new line characters
