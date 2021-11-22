@@ -51,10 +51,10 @@ def words():
         ranker = request_data['ranking_method']
         print(ranker)
 
-        custom_filters = [stem_text]
-        # custom_filters = []
-        # ranker = 'BM25' or 'PLNVSM'
-        #ranker = 'BM25'
+        if ranker == 'Exact Match':
+            custom_filters = []
+        else:
+            custom_filters = [stem_text]
 
         intelliMatch = IntelligentMatch(query, text_nodes, ranker=ranker, custom_filters=custom_filters)
         intelliMatch.initialize()
