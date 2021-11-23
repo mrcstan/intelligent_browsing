@@ -11,8 +11,9 @@ app = Flask(__name__)
 "HTML templates rendered with Jinja, introduced later, will do this automatically."
 # from markupsafe import escape
 
-USER_RATINGS = {}
+TOP_K = 3
 
+USER_RATINGS = {}
 
 @app.route('/rate', methods=['POST'])
 def rating():
@@ -33,15 +34,17 @@ def rating():
             USER_RATINGS[url][query][ranking_method] = {}
         USER_RATINGS[url][query][ranking_method][result_index] = liked
         #print('user ratings: ', USER_RATINGS)
-        rating = Rating(USER_RATINGS, topK=3)
+        rating = Rating(USER_RATINGS, topK=TOP_K)
         print(rating.df)
         rating_out_dir = '../ratings'
         os.makedirs('../ratings', exist_ok=True)
         rating.write_ratings_to_file(rating_out_dir+'/ratings.csv')
-        rating.calculate_mean_AP()
-        print('Mean average precision: ', rating.mean_average_precision)
-        rating.write_precisions_to_file(rating_out_dir+'/precisions.csv')
-
+        rating.calculate_mean_avg_precisions()
+        outfile = rating_out_dir+'/top-'+str(TOP_K)+'-avg-precisions.csv'
+        rating.write_avg_precisions_to_file(outfile)
+        outfile = rating_out_dir+'/top-'+str(TOP_K)+'-mean-avg-precisions.csv'
+        rating.write_mean_avg_precisions_to_file(outfile)
+        print(rating.mean_avg_precisions)
     return jsonify({'status': 'success'})
 
 
