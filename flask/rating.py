@@ -83,21 +83,6 @@ class Rating:
 
     def calculate_mean_avg_precisions(self):
         self.calculate_avg_precision_each_group()
-        self.mean_avg_precisions = self.group_avg_precisions.groupby('Method')['Avg-Precision'].mean().reset_index()
-        self.mean_avg_precisions.rename(columns={'Avg-Precision':'Mean-Avg-Precision'}, inplace=True)
+        self.mean_avg_precisions = self.group_avg_precisions.groupby('Method')['Avg-Precision'].agg(['mean', 'std']).reset_index()
+        self.mean_avg_precisions.rename(columns={'mean': 'Mean-Avg-Precision', 'std': 'Std-Avg-Precision'}, inplace=True)
         return self.mean_avg_precisions
-
-
-# if __name__ == "__main__":
-#     user_ratings = {'https://www.channelnewsasia.com/singapore/singapore-mature-pme-unemployed-job-search-wsg-2293696': {'find job': {3: True, 1: False, 0: True}},
-#                     'https://www.channelnewsasia.com/singapore/singapore-mature-pme-unemployed-job-search': {'find job2': {1: False, 6: True, 3: True}}}
-#
-#     relevances = pd.DataFrame({'Rank': [0, 1, 2, 3, 4], 'Relevance':[True, False, True, False, True]})
-#     rating = Rating(user_ratings)
-#     print(rating.df)
-#     print(rating.calculate_avg_precision(relevances))
-#     #rating.sort_data_frame()
-#     rating.print_data_frame()
-#     rating.calculate_mean_AP()
-#     print(rating.group_avg_precisions)
-#     print('MAP: ', rating.mean_avg_precision)
