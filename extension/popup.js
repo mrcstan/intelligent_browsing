@@ -351,6 +351,14 @@ function onDislike() {
   sendUserFeedback(gCurrentResult, false);
 }
 
+function addRankingMethodListeners() {
+  document.querySelectorAll('input[name=Ranker]').forEach(radio => radio.addEventListener('change', () => { 
+    gLastSearchText = null;
+    gResultCount = 0;
+    onSearchButtonClicked();
+  }));
+}
+
 window.onload = () => {
   searchBox().addEventListener('keyup', onSearchTextTyped)
   searchBox().addEventListener('search', onSearch)
@@ -359,5 +367,6 @@ window.onload = () => {
   likeButton().addEventListener('click', onLike)
   dislikeButton().addEventListener('click', onDislike)
   closeButton().addEventListener('click', onClose)
+  addRankingMethodListeners()
   updateButtons()
 }
