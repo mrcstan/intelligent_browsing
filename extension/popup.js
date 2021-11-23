@@ -319,10 +319,12 @@ async function sendUserFeedback(resultIndex, liked) {
     })
     const url = activeTab[0].url;
     const query = gLastSearchText;
+    const ranking_method = rankingMethod();
     const postData = {
       url,
       query,
       resultIndex,
+      ranking_method,
       liked,
     }
     const response = await fetch(SERVER_URL + '/rate', {

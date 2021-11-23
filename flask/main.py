@@ -23,12 +23,15 @@ def rating():
         query = request_data['query']
         result_index = request_data['resultIndex']
         liked = request_data['liked']
+        ranking_method = request_data['ranking_method']
 
         if url not in USER_RATINGS:
             USER_RATINGS[url] = {}
         if query not in USER_RATINGS[url]:
             USER_RATINGS[url][query] = {}
-        USER_RATINGS[url][query][result_index] = liked
+        if ranking_method not in USER_RATINGS[url][query]:
+            USER_RATINGS[url][query][ranking_method] = {}
+        USER_RATINGS[url][query][ranking_method][result_index] = liked
         #print('user ratings: ', USER_RATINGS)
         rating = Rating(USER_RATINGS, topK=3)
         print(rating.df)
@@ -49,7 +52,6 @@ def words():
         query = request_data['search_text']
         text_nodes = request_data['doc_content']['text_nodes']
         ranker = request_data['ranking_method']
-        print(ranker)
 
         if ranker == 'Exact Match':
             custom_filters = []

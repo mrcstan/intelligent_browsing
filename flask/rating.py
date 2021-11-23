@@ -8,7 +8,7 @@ class Rating:
         '''
         :param json_data:
             assume json_data format is in the following form
-            json_data[url][query][rank] = relevance
+            json_data[url][query][method][rank] = relevance
         :param topK:
              topK ranks to be used for calculating average precision
         '''
@@ -20,11 +20,12 @@ class Rating:
 
     def json2data_frame(self, json_data):
         data_list = []
-        for (website, query_rank_relevance) in json_data.items():
-            for (query, rank_relevance) in query_rank_relevance.items():
-                for (rank, relevance) in rank_relevance.items():
-                    data_list.append([website, query, rank, relevance])
-        return pd.DataFrame(data_list, columns=['Website', 'Query', 'Rank', 'Relevance'])
+        for (website, query_method_rank_relevance) in json_data.items():
+            for (query, method_rank_relevance) in query_method_rank_relevance.items():
+                for (method, rank_relevance) in method_rank_relevance.items():
+                    for (rank, relevance) in rank_relevance.items():
+                        data_list.append([website, query, method, rank, relevance])
+        return pd.DataFrame(data_list, columns=['Website', 'Query', 'Method', 'Rank', 'Relevance'])
 
     def write_data_frame_to_file(self, file_path, df, replace=True):
         if replace or not isfile(file_path):
@@ -41,7 +42,7 @@ class Rating:
             outfile.write('\n Top {0} mean average precision: {1}'.format(self.topK, self.mean_average_precision))
 
     def sort_data_frame(self):
-        self.df.sort_values(by=['Website', 'Query', 'Rank'], inplace=True)
+        self.df.sort_values(by=['Website', 'Query', 'Method', 'Rank'], inplace=True)
 
     def calculate_average_precision(self, df_rank_relevance):
         '''
@@ -73,7 +74,7 @@ class Rating:
             return precision/count_relevant
 
     def calculate_average_precision_each_group(self):
-        self.group_average_precisions = self.df.groupby(['Website', 'Query']).apply(self.calculate_average_precision).reset_index()
+        self.group_average_precisions = self.df.groupby(['Website', 'Query', 'Method']).apply(self.calculate_average_precision).reset_index()
         self.group_average_precisions.reset_index(inplace=True, drop=True)
         self.group_average_precisions.rename(columns={0:'AP'}, inplace=True)
         return self.group_average_precisions
