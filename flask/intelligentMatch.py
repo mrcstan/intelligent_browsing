@@ -111,7 +111,7 @@ class IntelligentMatch:
     def preprocess_documents(self):
         self.doc_tokens = [list(tokenize(doc, lower=True)) for doc in self.documents]
         self.doc_tokens = [preprocess_string(" ".join(doc), self.custom_filters) for doc in self.doc_tokens]
-        # print('doc_tokens: ', doc_tokens)
+        #print('doc_tokens: ', self.doc_tokens)
 
     def get_query_document_bow(self):
         self.dictionary = Dictionary(self.doc_tokens)
@@ -119,16 +119,30 @@ class IntelligentMatch:
         self.query_bow = self.dictionary.doc2bow(self.query_tokens)
 
     # Provide the offsets of matching words in a document
-    def match_word_in_document(self, document, query_tokens):
-        word_offsets = []
+    def match_word_in_document(self, document, query_token):
+        '''
 
-        for single_word_query in query_tokens:
-            # index of first character in text node matching the query
-            # find returns -1 if substring not found
-            ind_char = document.lower().find(single_word_query)
-            if ind_char == -1:
-                continue
-            word_offsets.append([ind_char, ind_char + len(single_word_query)])
+        :param document:
+            an unfiltered string of words
+        :param query_token:
+            a list of filtered query words
+        :return:
+        '''
+        word_offsets = []
+        document = document.lower()
+        # split document into words, remove punctuations etc. lower=False since document has been is already lower case
+        doc_words = list(tokenize(document, lower=False))
+        for doc_word in doc_words:
+            # get the location of the first character of the current document word
+            ind_char = document.find(doc_word)
+            # get the root word of the document word
+            filtered_word = preprocess_string(doc_word, self.custom_filters)[0]
+            for single_word_query in query_token:
+                # check if the filtered word match the single query word
+                # if true, return the location of the current document word
+                if filtered_word == single_word_query:
+                    word_offsets.append([ind_char, ind_char + len(doc_word)])
+                    break
 
         return word_offsets
 
