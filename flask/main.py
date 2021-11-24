@@ -35,7 +35,7 @@ def rating():
         USER_RATINGS[url][query][ranking_method][result_index] = liked
         #print('user ratings: ', USER_RATINGS)
         rating = Rating(USER_RATINGS, topK=TOP_K)
-        print(rating.df)
+        rating.write_print_data_frame()
         rating_out_dir = '../ratings'
         os.makedirs('../ratings', exist_ok=True)
         rating.write_ratings_to_file(rating_out_dir+'/ratings.csv')
@@ -44,7 +44,7 @@ def rating():
         rating.write_avg_precisions_to_file(outfile)
         outfile = rating_out_dir+'/top-'+str(TOP_K)+'-mean-avg-precisions.csv'
         rating.write_mean_avg_precisions_to_file(outfile)
-        print(rating.mean_avg_precisions)
+        rating.print_mean_avg_precision()
     return jsonify({'status': 'success'})
 
 
