@@ -4,7 +4,7 @@ from os.path import isfile
 pd.set_option('display.max_columns', None, 'expand_frame_repr', False)
 
 class Rating:
-    def __init__(self, json_data, topK=5):
+    def __init__(self, rating_json, topK=5):
         '''
         :param json_data:
             assume json_data format is in the following form
@@ -12,11 +12,10 @@ class Rating:
         :param topK:
              topK ranks to be used for calculating avg precision
         '''
-        self.json_data = json_data
-        self.df = self.json2data_frame(json_data)
-        self.group_avg_precisions = []
-        self.mean_avg_precisions = []
-        self.topK = topK
+        self._rating_df_ = self.json2data_frame(rating_json)
+        self._group_avg_precisions_ = []
+        self._mean_avg_precisions_ = []
+        self._topK_ = topK
 
     def json2data_frame(self, json_data):
         data_list = []
@@ -33,18 +32,24 @@ class Rating:
         else:  # else it exists so append without writing the header
             df.to_csv(file_path, mode='a', header=False, index=False)
 
+    def write_print_data_frame(self):
+        print(self._rating_df_)
+
     def write_ratings_to_file(self, file_path):
-        self.write_data_frame_to_file(file_path, self.df)
+        self.write_data_frame_to_file(file_path, self._rating_df_)
 
     def write_avg_precisions_to_file(self, file_path):
-        self.write_data_frame_to_file(file_path, self.group_avg_precisions)
+        self.write_data_frame_to_file(file_path, self._group_avg_precisions_)
 
     def write_mean_avg_precisions_to_file(self, file_path):
         # Write mean avg precisions of each method to file
-        self.write_data_frame_to_file(file_path, self.mean_avg_precisions)
+        self.write_data_frame_to_file(file_path, self._mean_avg_precisions_)
+
+    def print_mean_avg_precision(self):
+        print(self._mean_avg_precisions_)
 
     def sort_data_frame(self):
-        self.df.sort_values(by=['Website', 'Query', 'Method', 'Rank'], inplace=True)
+        self._rating_df_.sort_values(by=['Website', 'Query', 'Method', 'Rank'], inplace=True)
 
     def calculate_avg_precision(self, df_rank_relevance):
         '''
@@ -63,7 +68,7 @@ class Rating:
         count_relevant = 0
         df_rank_relevance.sort_values(by=['Rank'], inplace=True)
         for ind, row in df_rank_relevance.iterrows():
-            if row['Rank'] >= self.topK:
+            if row['Rank'] >= self._topK_:
                 break
             if row['Relevance']:
                 count_relevant += 1
@@ -76,13 +81,19 @@ class Rating:
             return precision/count_relevant
 
     def calculate_avg_precision_each_group(self):
-        self.group_avg_precisions = self.df.groupby(['Website', 'Query', 'Method']).apply(self.calculate_avg_precision).reset_index()
-        self.group_avg_precisions.reset_index(inplace=True, drop=True)
-        self.group_avg_precisions.rename(columns={0:'Avg-Precision'}, inplace=True)
-        return self.group_avg_precisions
+        self._group_avg_precisions_ = self._rating_df_.groupby(['Website', 'Query', 'Method']).apply(self.calculate_avg_precision).reset_index()
+        self._group_avg_precisions_.reset_index(inplace=True, drop=True)
+        self._group_avg_precisions_.rename(columns={0:'Avg-Precision'}, inplace=True)
+        return self._group_avg_precisions_
 
     def calculate_mean_avg_precisions(self):
         self.calculate_avg_precision_each_group()
-        self.mean_avg_precisions = self.group_avg_precisions.groupby('Method')['Avg-Precision'].agg(['mean', 'std']).reset_index()
-        self.mean_avg_precisions.rename(columns={'mean': 'Mean-Avg-Precision', 'std': 'Std-Avg-Precision'}, inplace=True)
-        return self.mean_avg_precisions
+        self._mean_avg_precisions_ = self._group_avg_precisions_.groupby('Method')['Avg-Precision'].agg(['mean', 'std']).reset_index()
+        self._mean_avg_precisions_.rename(columns={'mean': 'Mean-Avg-Precision', 'std': 'Std-Avg-Precision'}, inplace=True)
+        return self._mean_avg_precisions_
+
+    def set_topK(self, topK):
+        self._topK_ = topK
+
+    def get_topK(self):
+        return self._topK_

@@ -302,6 +302,7 @@ function onClose() {
 }
 
 function onPreviousResult() {
+  likeMessage().innerText = ''
   gCurrentResult--
   if (gCurrentResult < 0) {
     gCurrentResult = gResultCount - 1
@@ -311,6 +312,7 @@ function onPreviousResult() {
 }
 
 function onNextResult() {
+  likeMessage().innerText = ''
   gCurrentResult++
   if (gCurrentResult === gResultCount) {
     gCurrentResult = 0
