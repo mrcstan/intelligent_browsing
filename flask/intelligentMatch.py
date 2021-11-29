@@ -1,18 +1,28 @@
 from gensim.corpora import Dictionary
 # https://stackoverflow.com/questions/50009030/correct-way-of-using-phrases-and-preprocess-string-gensim
 from gensim.parsing.preprocessing import preprocess_string
+from gensim.utils import tokenize
+import numpy as np
 from rankingFunctions import BM25, PLNVSM
 import re
-from gensim.utils import tokenize
-
-import numpy as np
+from typing import List
 
 # regular expression for get_sentences
 RE_SENTENCE = re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
 
-class IntelligentMatch:
 
-    def __init__(self, query, text_nodes, ranker='BM25', custom_filters=[]):
+class IntelligentMatch:
+    def __init__(self, query: str, text_nodes: List[str], ranker: str = 'BM25', custom_filters: List[object]=[]):
+        """
+        :param query:
+            query text
+        :param text_nodes:
+            list of text nodes from the webpage
+        :param ranker:
+            ranking function type
+        :param custom_filters:
+            gensim.parsing.preprocessing filters
+        """
         self.query = query
         self.text_nodes = text_nodes
         self.custom_filters = custom_filters
@@ -85,19 +95,14 @@ class IntelligentMatch:
         return self.result
 
     # Copied from gensim.summarization, which has been deprecated in version 4.0
-    def get_sentences(self, text):
-        """Sentence generator from provided text. Sentence pattern set
-        in :const:`~gensim.summarization.textcleaner.RE_SENTENCE`.
+    def get_sentences(self, text: str):
+        """Sentence generator from provided text. Sentence pattern set in RE_SENTENCE
 
-        Parameters
-        ----------
-        text : str
+        :param text:
             Input text.
-
         Yields
         ------
-        str
-            Single sentence extracted from text.
+        Single sentence extracted from text.
 
         Example
         -------
@@ -108,7 +113,6 @@ class IntelligentMatch:
             >>>     print(sentence)
             Does this text contains two sentences?
             Yes, it does.
-
         """
         for match in RE_SENTENCE.finditer(text):
             yield match.group()
@@ -124,9 +128,6 @@ class IntelligentMatch:
             # https://numpy.org/doc/stable/reference/generated/numpy.intersect1d.html
             text_node = text_node.replace('\n', ' ')
 
-            # get_sentences extract sentences based on pattern set in RE_SENTENCE
-            # by default,  gensim.summarization.textcleaner.RE_SENTENCE
-            #  == re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
             for sentence in self.get_sentences(text_node):
                 self.documents.append(sentence)
                 offset = text_node.find(sentence)
@@ -148,15 +149,15 @@ class IntelligentMatch:
         self.query_bow = self.dictionary.doc2bow(self.query_tokens)
 
     # Provide the offsets of matching words in a document
-    def match_word_in_document(self, document, query_token):
-        '''
-
+    def match_word_in_document(self, document: str, query_token: List[str]) -> List[List[int]]:
+        """
         :param document:
-            an unfiltered string of words
+            an unfiltered string of words of a document
         :param query_token:
             a list of filtered query words
         :return:
-        '''
+             a list of pairs of starting and ending indices where the document matches the query text
+        """
         word_offsets = []
         document = document.lower()
         # split document into words, remove punctuations etc. lower=False since document has been is already lower case

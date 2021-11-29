@@ -18,7 +18,7 @@ The code has been tested with Python 3.7 and Google Chrome Version 96.0.
 Python 3 with the following packages are required `flask`, `gensim` and `numpy`.
 The Python packages can be installed in the terminal using `pip` with the command
 ```
-pip3 install flask gensim==3.8.3 numpy
+pip3 install flask gensim numpy
 ```
 
 Start the `flask` server by running the Python script `main.py`
@@ -49,21 +49,11 @@ As the down/up arrow is clicked, the browser scrolls to the next/previous senten
 the corresponding matching words in the sentence are highlighted in yellow. 
 Other matching words will remain highlighted
 
+# Optional sections
 ## Ratings for research purpose
 One can indicate the relevance of a current result with the like or dislike button. 
 The ratings will be output to a directory call `ratings` to measure performance 
 in terms of average precision
-
-## Running the fake backend
-
-First, install node - see [instructions](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-
-Then you can start the server by:
-
-```
-cd fake_backend
-npm start
-```
 
 ## Server protocol
 

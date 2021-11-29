@@ -7,6 +7,7 @@ import logging
 import math
 from six import iteritems
 from six.moves import range
+from typing import List, Tuple
 
 PARAM_K1 = 1.5
 PARAM_B = 0.75
@@ -32,7 +33,18 @@ class Ranker():
         List of document lengths.
     """
 
-    def __init__(self, corpus, epsilon=EPSILON):
+    def __init__(self, corpus: List[List[str]], epsilon: float = EPSILON):
+        """
+        :param corpus:
+            Given corpus
+        :param epsilon:
+            Constant used as floor value for idf of a document in the corpus. When epsilon is positive, it restricts
+            negative idf values. Negative idf implies that adding a very common term to a document penalize the overall
+            score (with 'very common' meaning that it is present in more than half of the documents). That can be
+            undesirable as it means that an identical document would score less than an almost identical one (by
+            removing the referred term). Increasing epsilon above 0 raises the sense of how rare a word has to be (among
+            different documents) to receive an extra score.
+        """
         self.epsilon = epsilon
 
         self.corpus_size = 0
@@ -42,8 +54,12 @@ class Ranker():
         self.doc_len = []
         self._initialize(corpus)
 
-    def _initialize(self, corpus):
-        """Calculates frequencies of terms in documents and in corpus. Also computes inverse document frequencies."""
+    def _initialize(self, corpus: List[List[str]]):
+        """Calculates frequencies of terms in documents and in corpus. Also computes inverse document frequencies
+
+        :param corpus:
+            Given corpus
+        """
         nd = {}  # word -> number of documents with word
         num_doc = 0
         for document in corpus:
@@ -88,38 +104,24 @@ class Ranker():
         for word in negative_idfs:
             self.idf[word] = eps
 
-    def get_scores(self, document):
+    def get_scores(self, document: List[str]) -> List[float]:
         """Computes and returns BM25 scores of given `document` in relation to
-        every item in corpus.
+        every item in corpus
 
-        Parameters
-        ----------
-        document : list of str
-            Document to be scored.
-
-        Returns
-        -------
-        list of float
-            BM25 scores.
-
+        :param document:
+            Document to be scored
+        :return: BM25 scores
         """
         scores = [self.get_score(document, index) for index in range(self.corpus_size)]
         return scores
 
-    def get_scores_bow(self, document):
+    def get_scores_bow(self, document: List[str]) -> List[Tuple[int, float]]:
         """Computes and returns BM25 scores of given `document` in relation to
-        every item in corpus.
+        every item in corpus
 
-        Parameters
-        ----------
-        document : list of str
+        :param document:
             Document to be scored.
-
-        Returns
-        -------
-        list of float
-            BM25 scores.
-
+        :return: BM25 scores
         """
         scores = []
         for index in range(self.corpus_size):
@@ -130,51 +132,31 @@ class Ranker():
 
 
 class BM25(Ranker):
-    # Implementation of Best Matching 25 ranking function.
-    def __init__(self, corpus, k1=PARAM_K1, b=PARAM_B, epsilon=EPSILON):
+    """Implementation of Best Matching 25 ranking function"""
+    def __init__(self, corpus, k1: float = PARAM_K1, b: float = PARAM_B, epsilon=EPSILON):
         """
-        Parameters
-        ----------
-        corpus : list of list of str
-            Given corpus.
-        k1 : float
+        :param k1:
             Constant used for influencing the term frequency saturation. After saturation is reached, additional
             presence for the term adds a significantly less additional score. According to [1]_, experiments suggest
             that 1.2 < k1 < 2 yields reasonably good results, although the optimal value depends on factors such as
             the type of documents or queries.
-        b : float
+        :param b:
             Constant used for influencing the effects of different document lengths relative to average document length.
             When b is bigger, lengthier documents (compared to average) have more impact on its effect. According to
             [1]_, experiments suggest that 0.5 < b < 0.8 yields reasonably good results, although the optimal value
             depends on factors such as the type of documents or queries.
-        epsilon : float
-            Constant used as floor value for idf of a document in the corpus. When epsilon is positive, it restricts
-            negative idf values. Negative idf implies that adding a very common term to a document penalize the overall
-            score (with 'very common' meaning that it is present in more than half of the documents). That can be
-            undesirable as it means that an identical document would score less than an almost identical one (by
-            removing the referred term). Increasing epsilon above 0 raises the sense of how rare a word has to be (among
-            different documents) to receive an extra score.
-
         """
         super().__init__(corpus, epsilon)
         self.k1 = k1
         self.b = b
 
-    def get_score(self, document, index):
-        """Computes BM25 score of given `document` in relation to item of corpus selected by `index`.
-
-        Parameters
-        ----------
-        document : list of str
+    def get_score(self, document: List[str], index: int) -> float:
+        """Computes BM25 score of given `document` in relation to item of corpus selected by `index`
+        :param document:
             Document to be scored.
-        index : int
+        :param index:
             Index of document in corpus selected to score with `document`.
-
-        Returns
-        -------
-        float
-            BM25 score.
-
+        :return: BM25 score.
         """
         score = 0.0
         doc_freqs = self.doc_freqs[index]
@@ -189,45 +171,26 @@ class BM25(Ranker):
 
 
 class PLNVSM(Ranker):
-    # Implementation of Pivoted Length Normalization VSM (Singhal et al. 96) by modifying bm25 class
-    def __init__(self, corpus,  b=PARAM_B, epsilon=EPSILON):
+    """Implementation of Pivoted Length Normalization VSM (Singhal et al. 96) """
+    def __init__(self, corpus,  b: float = PARAM_B, epsilon=EPSILON):
         """
-        Parameters
-        ----------
-        corpus : list of list of str
-            Given corpus.
-        b : float
+        :param b:
             Constant used for influencing the effects of different document lengths relative to average document length.
             When b is bigger, lengthier documents (compared to average) have more impact on its effect. According to
             [1]_, experiments suggest that 0.5 < b < 0.8 yields reasonably good results, although the optimal value
             depends on factors such as the type of documents or queries.
-        epsilon : float
-            Constant used as floor value for idf of a document in the corpus. When epsilon is positive, it restricts
-            negative idf values. Negative idf implies that adding a very common term to a document penalize the overall
-            score (with 'very common' meaning that it is present in more than half of the documents). That can be
-            undesirable as it means that an identical document would score less than an almost identical one (by
-            removing the referred term). Increasing epsilon above 0 raises the sense of how rare a word has to be (among
-            different documents) to receive an extra score.
-
         """
         super().__init__(corpus, epsilon)
         self.b = b
 
-    def get_score(self, document, index):
-        """Computes score of given `document` in relation to item of corpus selected by `index`.
+    def get_score(self, document: List[str], index: int) -> float:
+        """Computes score of given `document` in relation to item of corpus selected by `index`
 
-        Parameters
-        ----------
-        document : list of str
+        :param document:
             Document to be scored.
-        index : int
-            Index of document in corpus selected to score with `document`.
-
-        Returns
-        -------
-        float
-            score.
-
+        :param index:
+            Index of document in corpus selected to score with `document`
+        :return: score
         """
         score = 0.0
         doc_freqs = self.doc_freqs[index]
