@@ -1,14 +1,14 @@
 from gensim.corpora import Dictionary
 # https://stackoverflow.com/questions/50009030/correct-way-of-using-phrases-and-preprocess-string-gensim
 from gensim.parsing.preprocessing import preprocess_string
-# gensim.summarization is only available in gensim 3.8.3 or older
-from gensim.summarization import bm25
-from gensim.summarization.textcleaner import get_sentences
+from rankingFunctions import BM25, PLNVSM
+import re
 from gensim.utils import tokenize
-import plnVSM
 
 import numpy as np
 
+# regular expression for get_sentences
+RE_SENTENCE = re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
 
 class IntelligentMatch:
 
@@ -42,11 +42,11 @@ class IntelligentMatch:
         self.result = []
         if len(self.query_bow):
             if self.ranker == 'BM25':
-                ranker = bm25.BM25(self.doc_bow, b=0.0)
-                scores = ranker.get_scores(self.query_bow)
+                ranking_func = BM25(self.doc_bow, b=0.0)
+                scores = ranking_func.get_scores(self.query_bow)
                 self.rank_doc_inds = np.argsort(scores)[::-1]
             elif self.ranker == 'PLNVSM':
-                ranker = plnVSM.PLNVSM(self.doc_bow, b=0.0)
+                ranker = PLNVSM(self.doc_bow, b=0.0)
                 scores = ranker.get_scores(self.query_bow)
                 self.rank_doc_inds = np.argsort(scores)[::-1]
             elif self.ranker == 'Exact Match':
@@ -84,6 +84,35 @@ class IntelligentMatch:
 
         return self.result
 
+    # Copied from gensim.summarization, which has been deprecated in version 4.0
+    def get_sentences(self, text):
+        """Sentence generator from provided text. Sentence pattern set
+        in :const:`~gensim.summarization.textcleaner.RE_SENTENCE`.
+
+        Parameters
+        ----------
+        text : str
+            Input text.
+
+        Yields
+        ------
+        str
+            Single sentence extracted from text.
+
+        Example
+        -------
+        .. sourcecode:: pycon
+
+            >>> text = "Does this text contains two sentences? Yes, it does."
+            >>> for sentence in get_sentences(text):
+            >>>     print(sentence)
+            Does this text contains two sentences?
+            Yes, it does.
+
+        """
+        for match in RE_SENTENCE.finditer(text):
+            yield match.group()
+
     def split_text_nodes_into_sentences(self):
         self.documents = []
         self.map_to_text_node = []
@@ -98,7 +127,7 @@ class IntelligentMatch:
             # get_sentences extract sentences based on pattern set in RE_SENTENCE
             # by default,  gensim.summarization.textcleaner.RE_SENTENCE
             #  == re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
-            for sentence in get_sentences(text_node):
+            for sentence in self.get_sentences(text_node):
                 self.documents.append(sentence)
                 offset = text_node.find(sentence)
                 self.map_to_text_node.append([node_ind, offset])

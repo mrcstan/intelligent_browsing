@@ -15,8 +15,7 @@ and rank the sentences based on the query text.
 
 ## Installation
 The code has been tested with Python 3.7 and Google Chrome Version 96.0.
-Python 3 with the following packages are required `flask`, `gensim` and `numpy`. 
-Note that only `gensim 3.8.3` or older can be used. 
+Python 3 with the following packages are required `flask`, `gensim` and `numpy`.
 The Python packages can be installed in the terminal using `pip` with the command
 ```
 pip3 install flask gensim==3.8.3 numpy
