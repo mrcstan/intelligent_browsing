@@ -47,13 +47,13 @@ Matching words of sentences are highlighted in yellow/cyan and presented in rank
 i.e, the highest rank sentence is shown first. 
 As the down/up arrow is clicked, the browser scrolls to the next/previous sentence and 
 the corresponding matching words in the sentence are highlighted in yellow. 
-Other matching words will remain highlighted
+Other matching words will remain highlighted in cyan.
 
 # Optional sections
 ## Ratings for research purpose
 One can indicate the relevance of a current result with the like or dislike button. 
-The ratings will be output to a directory call `ratings` to measure performance 
-in terms of average precision
+The ratings will be output to a directory called `ratings` to measure performance 
+in terms of average precision. 
 
 ## Server protocol
 
