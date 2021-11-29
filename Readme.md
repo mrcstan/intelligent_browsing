@@ -1,7 +1,7 @@
 # Intelligent Browsing
 Intelligent Browsing is a Chrome Extension for matching sentences in a webpage to a query text.
 
-![overview screenshot](https://github.com/mrcstan/intelligent_browsing/docs/images/screenshot1.jpeg?raw=true)
+![overview screenshot](https://github.com/mrcstan/intelligent_browsing/blob/development/docs/images/screenshot1.jpeg?raw=true)
 
 ## Overview
 
