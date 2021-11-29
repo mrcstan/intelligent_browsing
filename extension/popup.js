@@ -21,6 +21,10 @@ function messages() {
   return getElement('Messages')
 }
 
+function likeMessage() {
+  return getElement('LikeMessage')
+}
+
 function previousResultButton() {
   return getElement("previousResult")
 }
@@ -47,6 +51,7 @@ function resultCounter() {
 
 function onSearchTextTyped(event) {
   messages().innerText = ''
+  likeMessage().innerText = ''
 }
 
 /**
@@ -202,6 +207,9 @@ function clearSearch() {
 }
 
 async function onSearchButtonClicked() {
+  messages().innerText = ''
+  likeMessage().innerText = ''
+
   const searchText = searchBox().value
 
   if (searchText === gLastSearchText && gResultCount > 0) {
@@ -294,6 +302,7 @@ function onClose() {
 }
 
 function onPreviousResult() {
+  likeMessage().innerText = ''
   gCurrentResult--
   if (gCurrentResult < 0) {
     gCurrentResult = gResultCount - 1
@@ -303,6 +312,7 @@ function onPreviousResult() {
 }
 
 function onNextResult() {
+  likeMessage().innerText = ''
   gCurrentResult++
   if (gCurrentResult === gResultCount) {
     gCurrentResult = 0
@@ -344,10 +354,12 @@ async function sendUserFeedback(resultIndex, liked) {
 }
 
 function onLike() {
+  likeMessage().innerText = 'Liked!'
   sendUserFeedback(gCurrentResult, true);
 }
 
 function onDislike() {
+  likeMessage().innerText = 'Disliked!'
   sendUserFeedback(gCurrentResult, false);
 }
 
