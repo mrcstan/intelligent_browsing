@@ -1,14 +1,14 @@
 import pandas as pd
 from os.path import isfile
+from typing import List, Dict
 
 pd.set_option('display.max_columns', None, 'expand_frame_repr', False)
 
 class Rating:
-    def __init__(self, rating_json, topK=5):
+    def __init__(self, rating_json, topK: int=5):
         '''
-        :param json_data:
-            assume json_data format is in the following form
-            json_data[url][query][method][rank] = relevance
+        :param rating_json:
+            see json2data_frame for the expected format
         :param topK:
              topK ranks to be used for calculating avg precision
         '''
@@ -17,7 +17,15 @@ class Rating:
         self._mean_avg_precisions_ = []
         self._topK_ = topK
 
-    def json2data_frame(self, json_data):
+    @staticmethod
+    def json2data_frame(json_data) -> pd.DataFrame:
+        """
+        :param json_data:
+            json_data should have the following format
+            json_data[url][query][method][rank] = relevance
+        :return:
+            a data frame with the columns corresponding to the keys and values of json_data
+        """
         data_list = []
         for (website, query_method_rank_relevance) in json_data.items():
             for (query, method_rank_relevance) in query_method_rank_relevance.items():
@@ -26,7 +34,14 @@ class Rating:
                         data_list.append([website, query, method, rank, relevance])
         return pd.DataFrame(data_list, columns=['Website', 'Query', 'Method', 'Rank', 'Relevance'])
 
-    def write_data_frame_to_file(self, file_path, df, replace=True):
+    @staticmethod
+    def write_data_frame_to_file(file_path: str, df: pd.DataFrame, replace: bool=True):
+        """
+        :param file_path:
+        :param df:
+        :param replace:
+            replace existing file if true. Otherwise, append to existing file
+        """
         if replace or not isfile(file_path):
             df.to_csv(file_path, header=True, index=False)
         else:  # else it exists so append without writing the header
@@ -35,13 +50,13 @@ class Rating:
     def write_print_data_frame(self):
         print(self._rating_df_)
 
-    def write_ratings_to_file(self, file_path):
+    def write_ratings_to_file(self, file_path: str):
         self.write_data_frame_to_file(file_path, self._rating_df_)
 
-    def write_avg_precisions_to_file(self, file_path):
+    def write_avg_precisions_to_file(self, file_path: str):
         self.write_data_frame_to_file(file_path, self._group_avg_precisions_)
 
-    def write_mean_avg_precisions_to_file(self, file_path):
+    def write_mean_avg_precisions_to_file(self, file_path: str):
         # Write mean avg precisions of each method to file
         self.write_data_frame_to_file(file_path, self._mean_avg_precisions_)
 
@@ -51,7 +66,7 @@ class Rating:
     def sort_data_frame(self):
         self._rating_df_.sort_values(by=['Website', 'Query', 'Method', 'Rank'], inplace=True)
 
-    def calculate_avg_precision(self, df_rank_relevance):
+    def calculate_avg_precision(self, df_rank_relevance: pd.DataFrame) -> float:
         '''
         :param df_rank_relevance:
             data frame containing the ranking of the matches and the relevance of the ranking

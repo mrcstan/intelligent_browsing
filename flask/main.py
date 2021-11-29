@@ -3,6 +3,7 @@ from gensim.parsing.preprocessing import remove_stopwords, stem_text
 from intelligentMatch import IntelligentMatch
 import os
 from rating import Rating
+from typing import List
 
 app = Flask(__name__)
 
