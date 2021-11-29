@@ -1,21 +1,59 @@
 # Intelligent Browsing
+Intelligent Browsing is a Chrome Extension for matching sentences in a webpage to a query text.
 
-This has two folders: `extension` and `flask`. The `extension` folder is a Chrome extension to add search functionality, and the `flask` is the backend that handles `POST` calls from the extension. There's also a `fake_backend` folder which has a mock version of the server for testing.
+![overview screenshot](https://github.com/mrcstan/intelligent_browsing/docs/images/screenshot1.jpeg?raw=true)
 
-## Running the server
+## Overview
 
-You need to first install `flask`, `gensim` and `numpy`, like:
+There are two source folders: `extension` and `flask`. 
+`extension` contains frontend scripts to create the GUI of the Chrome extension, extract text nodes from a webpage 
+and present results from the backend model.
 
+`flask` contains Python scripts to create a backend server and model. 
+The model takes the text nodes and query text from the frontend, split the text nodes into sentences 
+and rank the sentences based on the query text.  
+
+## Installation
+The code has been tested with Python 3.7 and Google Chrome Version 96.0.
+Python 3 with the following packages are required `flask`, `gensim` and `numpy`. 
+Note that only `gensim 3.8.3` or older can be used. 
+The Python packages can be installed in the terminal using `pip` with the command
 ```
 pip3 install flask gensim==3.8.3 numpy
 ```
 
-Then you can start server with:
-
+Start the `flask` server by running the Python script `main.py`
 ```
 cd flask
 python3 ./main.py
 ```
+
+To load the extension, go to the URL `chrome://extensions/` in the Chrome browser. 
+Click "Load unpacked" and select the extension directory. 
+Click the Extensions icon to the right of the URL bar and the Bookmark icon.
+The Intelligent Browsing extension should be visible. 
+You may pin the extension to facilitate access. 
+By design, Chrome does not allow extensions to remain open when Chrome is no longer the current window.  
+
+## How to use extension?
+Three ranking methods are available: 
+1. BM25 (Robertson & Walker, 1994)
+2. PLNVSM (Pivoted length normalization vector space model by Singhal et al., 1996)
+3. Exact match
+
+BM25 is the default. The ranking method can be changed with the radio buttons. 
+   
+Type any query text (word, phrases or sentences) in the search bar and press "return".
+Matching words of sentences are highlighted in yellow/cyan and presented in ranking order,
+i.e, the highest rank sentence is shown first. 
+As the down/up arrow is clicked, the browser scrolls to the next/previous sentence and 
+the corresponding matching words in the sentence are highlighted in yellow. 
+Other matching words will remain highlighted
+
+## Ratings for research purpose
+One can indicate the relevance of a current result with the like or dislike button. 
+The ratings will be output to a directory call `ratings` to measure performance 
+in terms of average precision
 
 ## Running the fake backend
 
@@ -64,7 +102,3 @@ The response is a JSON array containing indexes from text_nodes that match, and 
   }
 ]
 ```
-
-## Running the extension
-
-In Chrome, load the extension unpacked from the `extension` folder. Then click on the extension toolbar button to load it. Type a search term, and press return.
