@@ -4,21 +4,6 @@ gCurrentResult = null
 gResultCount = 0
 gLastSearchText = null
 
-// https://stackoverflow.com/questions/32288722/call-python-function-from-js
-function startBackend(input) {
-   $.ajax({
-        type: "POST",
-        url: "../flask/main.py",
-        data: { param: input },
-        success: callbackFunc
-    });
-}
-
-function callbackFunc() {
-    // do something with the response
-    console.log("backend server stopped");
-}
-
 function getElement(id) {
   return document.querySelector('#' + id)
 }
@@ -396,5 +381,4 @@ window.onload = () => {
   closeButton().addEventListener('click', onClose)
   addRankingMethodListeners()
   updateButtons()
-  startBackend('server url');
 }
