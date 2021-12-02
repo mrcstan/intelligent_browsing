@@ -16,56 +16,83 @@ TOP_K = 3
 
 USER_RATINGS = {}
 
+
 @app.route('/rate', methods=['POST'])
 def rating():
     if request.method == 'POST':
-        request_data = request.get_json()
+        try:
+            request_data = request.get_json()
+            if len(request_data):
+                url = request_data['url']
+                query = request_data['query']
+                result_index = request_data['resultIndex']
+                liked = request_data['liked']
+                ranking_method = request_data['ranking_method']
 
-        url = request_data['url']
-        query = request_data['query']
-        result_index = request_data['resultIndex']
-        liked = request_data['liked']
-        ranking_method = request_data['ranking_method']
+                if url not in USER_RATINGS:
+                    USER_RATINGS[url] = {}
+                if query not in USER_RATINGS[url]:
+                    USER_RATINGS[url][query] = {}
+                if ranking_method not in USER_RATINGS[url][query]:
+                    USER_RATINGS[url][query][ranking_method] = {}
+                USER_RATINGS[url][query][ranking_method][result_index] = liked
+                #print('user ratings: ', USER_RATINGS)
+                rating = Rating(USER_RATINGS, topK=TOP_K)
+                rating.write_print_data_frame()
+                rating_out_dir = '../ratings'
+                os.makedirs('../ratings', exist_ok=True)
+                rating.write_ratings_to_file(rating_out_dir+'/ratings.csv')
+                rating.calculate_mean_avg_precisions()
+                outfile = rating_out_dir+'/top-'+str(TOP_K)+'-avg-precisions.csv'
+                rating.write_avg_precisions_to_file(outfile)
+                outfile = rating_out_dir+'/top-'+str(TOP_K)+'-mean-avg-precisions.csv'
+                rating.write_mean_avg_precisions_to_file(outfile)
+                rating.print_mean_avg_precision()
+                result = {'status': 'success'}
+            else:
+                print('Error: provided rating data is empty')
+                result = {'status': 'failure'}
+        except RuntimeError as e:
+            print(e)
+            result = {'status': 'failure'}
+    else:
+        result = {'status': 'failure'}
 
-        if url not in USER_RATINGS:
-            USER_RATINGS[url] = {}
-        if query not in USER_RATINGS[url]:
-            USER_RATINGS[url][query] = {}
-        if ranking_method not in USER_RATINGS[url][query]:
-            USER_RATINGS[url][query][ranking_method] = {}
-        USER_RATINGS[url][query][ranking_method][result_index] = liked
-        #print('user ratings: ', USER_RATINGS)
-        rating = Rating(USER_RATINGS, topK=TOP_K)
-        rating.write_print_data_frame()
-        rating_out_dir = '../ratings'
-        os.makedirs('../ratings', exist_ok=True)
-        rating.write_ratings_to_file(rating_out_dir+'/ratings.csv')
-        rating.calculate_mean_avg_precisions()
-        outfile = rating_out_dir+'/top-'+str(TOP_K)+'-avg-precisions.csv'
-        rating.write_avg_precisions_to_file(outfile)
-        outfile = rating_out_dir+'/top-'+str(TOP_K)+'-mean-avg-precisions.csv'
-        rating.write_mean_avg_precisions_to_file(outfile)
-        rating.print_mean_avg_precision()
-    return jsonify({'status': 'success'})
+    return jsonify(result)
 
 
 @app.route('/search', methods=['POST'])
 def words():
     if request.method == 'POST':
-        request_data = request.get_json()
-        query = request_data['search_text']
-        text_nodes = request_data['doc_content']['text_nodes']
-        ranker = request_data['ranking_method']
+        try:
+            request_data = request.get_json()
+            if len(request_data):
+                query = request_data['search_text']
+                text_nodes = request_data['doc_content']['text_nodes']
+                ranker = request_data['ranking_method']
 
-        if ranker == 'Exact Match':
-            custom_filters = []
-        else:
-            custom_filters = [stem_text]
+                if ranker == 'Exact Match':
+                    text_filters = []
+                    word_match_filters = []
+                else:
+                    text_filters = [remove_stopwords, stem_text]
+                    word_match_filters = [stem_text]
 
-        intelliMatch = IntelligentMatch(query, text_nodes, ranker=ranker, custom_filters=custom_filters)
-        intelliMatch.initialize()
-        result = intelliMatch.rank()
-        #print('result: ', result)
+                intelliMatch = IntelligentMatch(query, text_nodes, split_text_nodes=False, ranker=ranker,
+                                                text_filters=text_filters,
+                                                word_match_filters=word_match_filters)
+                intelliMatch.initialize()
+                result = intelliMatch.rank()
+                #print('result: ', result)
+            else:
+                print('Error: provided website data is empty')
+                result = {}
+        except RuntimeError as e:
+            print(e)
+            result = {}
+
+    else:
+        result = {}
 
     return jsonify(result)
 

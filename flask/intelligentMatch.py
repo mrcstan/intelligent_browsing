@@ -12,20 +12,29 @@ RE_SENTENCE = re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
 
 
 class IntelligentMatch:
-    def __init__(self, query: str, text_nodes: List[str], ranker: str = 'BM25', custom_filters: List[object]=[]):
+    def __init__(self, query: str, text_nodes: List[str], split_text_nodes: bool = False,
+                 ranker: str = 'BM25', text_filters: List[object]=[],
+                 word_match_filters: List[object]=[]):
         """
         :param query:
             query text
         :param text_nodes:
             list of text nodes from the webpage
+        :param split_text_nodes:
+            indicates if text_nodes should be split into sentences before ranking
         :param ranker:
             ranking function type
-        :param custom_filters:
-            gensim.parsing.preprocessing filters
+        :param text_filters:
+            gensim.parsing.preprocessing filters for filtering all documents and entire query text
+        :param word_match_filters:
+            gensim.parsing.preprocessing filters for filtering each document word when attempting
+            to match query to document word
         """
         self.query = query
         self.text_nodes = text_nodes
-        self.custom_filters = custom_filters
+        self.split_text_nodes = split_text_nodes
+        self.text_filters = text_filters
+        self.word_match_filters = word_match_filters
         self.documents = []
         self.map_to_text_node = []
         self.query_tokens = []
@@ -38,7 +47,11 @@ class IntelligentMatch:
         self.ranker = ranker
 
     def initialize(self):
-        self.split_text_nodes_into_sentences()
+        if self.split_text_nodes:
+            self.split_text_nodes_into_sentences()
+        else:
+            self.text_nodes_to_documents()
+
         self.preprocess_query()
         self.preprocess_documents()
         self.get_query_document_bow()
@@ -133,14 +146,19 @@ class IntelligentMatch:
                 offset = text_node.find(sentence)
                 self.map_to_text_node.append([node_ind, offset])
 
+    def text_nodes_to_documents(self):
+        self.documents = self.text_nodes
+        self.map_to_text_node = [[node_ind, 0] for node_ind in range(len(self.text_nodes))]
+
+
     def preprocess_query(self):
         self.query_tokens = list(tokenize(self.query, lower=True))
-        self.query_tokens = preprocess_string(" ".join(self.query_tokens), self.custom_filters)
+        self.query_tokens = preprocess_string(" ".join(self.query_tokens), self.text_filters)
         #print('query_tokens: ', self.query_tokens)
 
     def preprocess_documents(self):
         self.doc_tokens = [list(tokenize(doc, lower=True)) for doc in self.documents]
-        self.doc_tokens = [preprocess_string(" ".join(doc), self.custom_filters) for doc in self.doc_tokens]
+        self.doc_tokens = [preprocess_string(" ".join(doc), self.text_filters) for doc in self.doc_tokens]
         #print('doc_tokens: ', self.doc_tokens)
 
     def get_query_document_bow(self):
@@ -162,11 +180,12 @@ class IntelligentMatch:
         document = document.lower()
         # split document into words, remove punctuations etc. lower=False since document has been is already lower case
         doc_words = list(tokenize(document, lower=False))
+
         for doc_word in doc_words:
             # get the location of the first character of the current document word
             ind_char = document.find(doc_word)
             # get the root word of the document word
-            filtered_word = preprocess_string(doc_word, self.custom_filters)[0]
+            filtered_word = preprocess_string(doc_word, self.word_match_filters)[0]
             for single_word_query in query_token:
                 # check if the filtered word match the single query word
                 # if true, return the location of the current document word
