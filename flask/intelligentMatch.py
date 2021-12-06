@@ -18,7 +18,7 @@ RE_SENTENCE = re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
 class IntelligentMatch:
     def __init__(self, query: str, text_nodes: List[str], split_text_nodes: bool = False,
                  ranker: str = 'BM25', stopword_file: str = 'stopwords.txt',
-                 max_query_words_4_syn: int = 0):
+                 add_synonyms: bool = False):
         """
         :param query:
             query text
@@ -30,9 +30,8 @@ class IntelligentMatch:
             ranking function type. Valid rankers are 'BM25', 'PLNVSM', 'Exact Match'
         :param stopword_file:
             a file containing a list of stopwords
-        :param max_query_words_4_syn:
-            maximum number of query words at or below which synonyms for each query word will be added to the query
-            set to 0 if synonyms are not needed
+        :param add_synonyms:
+            indicates whether query should be enhanced with synonyms of each word
         """
         self.query = query
         self.text_nodes = text_nodes
@@ -61,9 +60,7 @@ class IntelligentMatch:
             self.word_match_filters = [stem_text]
         else:
             raise Exception('Unknown ranker')
-        assert max_query_words_4_syn >= 0, 'invalid max_query_words_4_syn'
-        self.max_query_words_4_syn = max_query_words_4_syn
-
+        self.add_synonyms = add_synonyms
 
     def initialize(self):
         if self.split_text_nodes:
@@ -209,13 +206,13 @@ class IntelligentMatch:
     def preprocess_query(self):
         self.query_tokens = list(tokenize(self.query, lower=True))
         self.query_tokens = preprocess_string(" ".join(self.query_tokens), self.text_filters)
-        if self.max_query_words_4_syn > 0 and len(self.query_tokens) <= self.max_query_words_4_syn:
-            synonyms = []
+        #print('query_tokens before: ', self.query_tokens)
+        if self.add_synonyms:
+            new_query_tokens = []
             for word in self.query_tokens:
-                synonyms.extend(self.get_synonyms(word))
-            self.query_tokens = list(set(self.query_tokens).union(synonyms))
-
-        #print('query_tokens: ', self.query_tokens)
+                new_query_tokens.extend(self.get_synonyms(word))
+            self.query_tokens.extend(new_query_tokens)
+        #print('query_tokens after: ', self.query_tokens)
 
     def preprocess_documents(self):
         self.doc_tokens = [list(tokenize(doc, lower=True)) for doc in self.documents]
