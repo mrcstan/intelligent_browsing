@@ -5,6 +5,7 @@ from gensim.corpora import Dictionary
 from gensim.parsing.preprocessing import preprocess_string
 from gensim.parsing.preprocessing import stem_text
 from gensim.utils import tokenize
+from nltk.corpus import wordnet as wn
 import numpy as np
 from rankingFunctions import BM25, PLNVSM
 import re
@@ -16,7 +17,8 @@ RE_SENTENCE = re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
 
 class IntelligentMatch:
     def __init__(self, query: str, text_nodes: List[str], split_text_nodes: bool = False,
-                 ranker: str = 'BM25', stopword_file: str = 'stopwords.txt'):
+                 ranker: str = 'BM25', stopword_file: str = 'stopwords.txt',
+                 max_query_words_4_syn: int = 0):
         """
         :param query:
             query text
@@ -26,11 +28,11 @@ class IntelligentMatch:
             indicates if text_nodes should be split into sentences before ranking
         :param ranker:
             ranking function type. Valid rankers are 'BM25', 'PLNVSM', 'Exact Match'
-        :param text_filters:
-            gensim.parsing.preprocessing filters for filtering all documents and entire query text
-        :param word_match_filters:
-            gensim.parsing.preprocessing filters for filtering each document word when attempting
-            to match query to document word
+        :param stopword_file:
+            a file containing a list of stopwords
+        :param max_query_words_4_syn:
+            maximum number of query words at or below which synonyms for each query word will be added to the query
+            set to 0 if synonyms are not needed
         """
         self.query = query
         self.text_nodes = text_nodes
@@ -59,6 +61,9 @@ class IntelligentMatch:
             self.word_match_filters = [stem_text]
         else:
             raise Exception('Unknown ranker')
+        assert max_query_words_4_syn >= 0, 'invalid max_query_words_4_syn'
+        self.max_query_words_4_syn = max_query_words_4_syn
+
 
     def initialize(self):
         if self.split_text_nodes:
@@ -122,7 +127,8 @@ class IntelligentMatch:
         return self.result
 
     # Copied from gensim.summarization, which has been deprecated in version 4.0
-    def get_sentences(self, text: str):
+    @staticmethod
+    def get_sentences(text: str):
         """Sentence generator from provided text. Sentence pattern set in RE_SENTENCE
 
         :param text:
@@ -144,7 +150,22 @@ class IntelligentMatch:
         for match in RE_SENTENCE.finditer(text):
             yield match.group()
 
-    def read_stopwords(self, stopword_file: str):
+    @staticmethod
+    def get_synonyms(word: str) -> List[str]:
+        """Return synonyms of a word excluding the word itself
+
+        :param word:
+        :return:
+        """
+        synonyms = []
+        for syn in wn.synsets(word):
+            for lemma in syn.lemmas():
+                synonyms.append(lemma.name().lower())
+        # return list of unique synonyms
+        return list(set(synonyms).difference([word]))
+
+    @staticmethod
+    def read_stopwords(stopword_file: str):
         '''
         :param: stopword_file:
             path to file containing stopwords
@@ -155,7 +176,7 @@ class IntelligentMatch:
             stopwords = file.read().splitlines()
         return stopwords
 
-    def remove_stopwords(self, s: str):
+    def remove_stopwords(self, s: str) -> List[str]:
         """Remove stopwords in a list from `s`.
         :param: s
         :return:
@@ -188,6 +209,12 @@ class IntelligentMatch:
     def preprocess_query(self):
         self.query_tokens = list(tokenize(self.query, lower=True))
         self.query_tokens = preprocess_string(" ".join(self.query_tokens), self.text_filters)
+        if self.max_query_words_4_syn > 0 and len(self.query_tokens) <= self.max_query_words_4_syn:
+            synonyms = []
+            for word in self.query_tokens:
+                synonyms.extend(self.get_synonyms(word))
+            self.query_tokens = list(set(self.query_tokens).union(synonyms))
+
         #print('query_tokens: ', self.query_tokens)
 
     def preprocess_documents(self):
