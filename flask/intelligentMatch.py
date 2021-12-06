@@ -1,6 +1,9 @@
+from gensim import utils
 from gensim.corpora import Dictionary
+# from gensim.models import Word2Vec
 # https://stackoverflow.com/questions/50009030/correct-way-of-using-phrases-and-preprocess-string-gensim
 from gensim.parsing.preprocessing import preprocess_string
+from gensim.parsing.preprocessing import stem_text
 from gensim.utils import tokenize
 import numpy as np
 from rankingFunctions import BM25, PLNVSM
@@ -13,8 +16,7 @@ RE_SENTENCE = re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
 
 class IntelligentMatch:
     def __init__(self, query: str, text_nodes: List[str], split_text_nodes: bool = False,
-                 ranker: str = 'BM25', text_filters: List[object]=[],
-                 word_match_filters: List[object]=[]):
+                 ranker: str = 'BM25', stopword_file: str = 'stopwords.txt'):
         """
         :param query:
             query text
@@ -23,7 +25,7 @@ class IntelligentMatch:
         :param split_text_nodes:
             indicates if text_nodes should be split into sentences before ranking
         :param ranker:
-            ranking function type
+            ranking function type. Valid rankers are 'BM25', 'PLNVSM', 'Exact Match'
         :param text_filters:
             gensim.parsing.preprocessing filters for filtering all documents and entire query text
         :param word_match_filters:
@@ -33,8 +35,6 @@ class IntelligentMatch:
         self.query = query
         self.text_nodes = text_nodes
         self.split_text_nodes = split_text_nodes
-        self.text_filters = text_filters
-        self.word_match_filters = word_match_filters
         self.documents = []
         self.map_to_text_node = []
         self.query_tokens = []
@@ -45,6 +45,20 @@ class IntelligentMatch:
         self.rank_doc_inds = []
         self.result = []
         self.ranker = ranker
+        self.stopwords = self.read_stopwords(stopword_file)
+        # self.text_filters:
+        #   gensim.parsing.preprocessing filters for filtering all documents and entire query text
+        # self.word_match_filters:
+        #   gensim.parsing.preprocessing filters for filtering each document word when attempting
+        #   to match query to document word
+        if ranker == 'Exact Match':
+            self.text_filters = []
+            self.word_match_filters = []
+        elif ranker == 'BM25' or ranker == 'PLNVSM':
+            self.text_filters = [self.remove_stopwords, stem_text]
+            self.word_match_filters = [stem_text]
+        else:
+            raise Exception('Unknown ranker')
 
     def initialize(self):
         if self.split_text_nodes:
@@ -129,6 +143,26 @@ class IntelligentMatch:
         """
         for match in RE_SENTENCE.finditer(text):
             yield match.group()
+
+    def read_stopwords(self, stopword_file: str):
+        '''
+        :param: stopword_file:
+            path to file containing stopwords
+        :return:
+            list of stopwords
+        '''
+        with open(stopword_file, 'r') as file:
+            stopwords = file.read().splitlines()
+        return stopwords
+
+    def remove_stopwords(self, s: str):
+        """Remove stopwords in a list from `s`.
+        :param: s
+        :return:
+            Unicode string without stopwords
+        """
+        s = utils.to_unicode(s)
+        return " ".join(w for w in s.split() if w not in self.stopwords)
 
     def split_text_nodes_into_sentences(self):
         self.documents = []
