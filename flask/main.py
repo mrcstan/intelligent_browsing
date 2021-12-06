@@ -72,7 +72,7 @@ def words():
                 ranker = request_data['ranking_method']
 
                 intelliMatch = IntelligentMatch(query, text_nodes, split_text_nodes=False,
-                                                ranker=ranker, max_query_words_4_syn=9e99)
+                                                ranker=ranker, add_synonyms=True)
                 intelliMatch.initialize()
                 result = intelliMatch.rank()
                 #print('result: ', result)
