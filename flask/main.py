@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from gensim.parsing.preprocessing import remove_stopwords, stem_text
+
 from intelligentMatch import IntelligentMatch
 import os
 from rating import Rating
@@ -71,16 +71,7 @@ def words():
                 text_nodes = request_data['doc_content']['text_nodes']
                 ranker = request_data['ranking_method']
 
-                if ranker == 'Exact Match':
-                    text_filters = []
-                    word_match_filters = []
-                else:
-                    text_filters = [remove_stopwords, stem_text]
-                    word_match_filters = [stem_text]
-
-                intelliMatch = IntelligentMatch(query, text_nodes, split_text_nodes=False, ranker=ranker,
-                                                text_filters=text_filters,
-                                                word_match_filters=word_match_filters)
+                intelliMatch = IntelligentMatch(query, text_nodes, split_text_nodes=False, ranker=ranker)
                 intelliMatch.initialize()
                 result = intelliMatch.rank()
                 #print('result: ', result)
