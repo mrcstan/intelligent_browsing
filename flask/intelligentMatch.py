@@ -73,7 +73,6 @@ class IntelligentMatch:
         self.get_query_document_bow()
 
     def clear_result(self):
-        self.scores = []
         self.rank_doc_inds = []
         self.result = []
 
@@ -163,17 +162,17 @@ class IntelligentMatch:
 
     @staticmethod
     def read_stopwords(stopword_file: str):
-        '''
+        """
         :param: stopword_file:
             path to file containing stopwords
         :return:
             list of stopwords
-        '''
+        """
         with open(stopword_file, 'r') as file:
             stopwords = file.read().splitlines()
         return stopwords
 
-    def remove_stopwords(self, s: str) -> List[str]:
+    def remove_stopwords(self, s: str) -> str:
         """Remove stopwords in a list from `s`.
         :param: s
         :return:
@@ -202,22 +201,21 @@ class IntelligentMatch:
         self.documents = self.text_nodes
         self.map_to_text_node = [[node_ind, 0] for node_ind in range(len(self.text_nodes))]
 
-
     def preprocess_query(self):
         self.query_tokens = list(tokenize(self.query, lower=True))
         self.query_tokens = preprocess_string(" ".join(self.query_tokens), self.text_filters)
-        #print('query_tokens before: ', self.query_tokens)
+        # print('query_tokens before: ', self.query_tokens)
         if self.add_synonyms:
             new_query_tokens = []
             for word in self.query_tokens:
                 new_query_tokens.extend(self.get_synonyms(word))
             self.query_tokens.extend(new_query_tokens)
-        #print('query_tokens after: ', self.query_tokens)
+        # print('query_tokens after: ', self.query_tokens)
 
     def preprocess_documents(self):
         self.doc_tokens = [list(tokenize(doc, lower=True)) for doc in self.documents]
         self.doc_tokens = [preprocess_string(" ".join(doc), self.text_filters) for doc in self.doc_tokens]
-        #print('doc_tokens: ', self.doc_tokens)
+        # print('doc_tokens: ', self.doc_tokens)
 
     def get_query_document_bow(self):
         self.dictionary = Dictionary(self.doc_tokens)
@@ -252,5 +250,3 @@ class IntelligentMatch:
                     break
 
         return word_offsets
-
-
