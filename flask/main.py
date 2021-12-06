@@ -3,7 +3,9 @@ from flask import Flask, jsonify, request
 from intelligentMatch import IntelligentMatch
 import os
 from rating import Rating
-from typing import List
+# from typing import List
+# required for production server
+from waitress import serve
 
 app = Flask(__name__)
 
@@ -90,4 +92,7 @@ def words():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+    # start production server
+    serve(app, host='localhost', port=8080)
+    # start development server
+    # app.run(debug=True, port=8080)
