@@ -67,6 +67,26 @@ The response is a JSON array containing indexes from text_nodes that match, and 
 
 ##### Rating
 
+The server endpoint `POST /rate` expects the request body to contain a JSON object with the following fields:
+
+```json
+{
+    "url": "<the URL of the web page>",
+    "query": "<the user-submitted query>",
+    "result_index": "<the index of the result, based on its relevance ranking>"
+    "liked": "<a boolean value indicating if the user liked or disliked the result>"
+    "ranking_method": "<indicates the ranking method selected by the user>"
+}
+```
+
+The ratings will be saved to a CSV file along with records of the average precision of the operation. The endpoint will respond with a JSON object indicating the success or failure of the operation, like so:
+
+```json
+{
+    "status": "<success || failure>
+}
+```
+
 ## Installation
 The code has been tested with Python 3.7 and Google Chrome Version 96.0.
 Python 3 with the following packages are required `flask`, `gensim` and `numpy`.
