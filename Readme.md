@@ -83,7 +83,7 @@ The ratings will be saved to a CSV file along with records of the average precis
 
 ```json
 {
-    "status": "<success || failure>
+    "status": "<success || failure>"
 }
 ```
 
