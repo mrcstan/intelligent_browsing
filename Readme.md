@@ -47,7 +47,7 @@ The server endpoint, `POST /search`. It expects the body to be a JSON object lik
 
 `text_nodes` is the nodeValue of all non whitespace DOM text nodes in the document, in the order in which they appear, and `search_text` is the text the user is searching for.
 
-The response is a JSON array containing indexes from text_nodes that match, and the offsets of matching text within those nodes. It can optionally also contain a wordOffsets array that gives the index of words within each match.
+The response from the endpoint is a JSON array containing indexes from text_nodes that match, and the offsets of matching text within those nodes. It can optionally also contain a wordOffsets array that gives the index of words within each match.
 
 ```json
 [
@@ -89,7 +89,7 @@ The ratings will be saved to a CSV file along with records of the average precis
 
 ## Installation
 The code has been tested with Python 3.7 and Google Chrome Version 96.0.
-Python 3 with the following packages are required `flask`, `gensim` and `numpy`.
+Having Python 3 with the following packages installed is required: `flask`, `gensim` and `numpy`.
 The Python packages can be installed in the terminal using `pip` with the command
 ```
 pip3 install flask gensim numpy
@@ -106,7 +106,7 @@ Click "Load unpacked" and select the extension directory.
 Click the Extensions icon to the right of the URL bar and the Bookmark icon.
 The Intelligent Browsing extension should be visible. 
 You may pin the extension to facilitate access. 
-By design, Chrome does not allow extensions to remain open when Chrome is no longer the current window.  
+By design, Chrome does not allow extensions to remain open when Chrome is no longer viewing the current window.  
 
 ## How to use the extension?
 Three ranking methods are available: 
@@ -114,12 +114,12 @@ Three ranking methods are available:
 2. PLNVSM (Pivoted length normalization vector space model by Singhal et al., 1996)
 3. Exact match
 
-BM25 is the default. The ranking method can be changed with the radio buttons. 
+BM25 is the default. The ranking method can be changed using the displayed radio buttons. 
    
 Type any query text (word, phrases or sentences) in the search bar and press "return".
 Matching words of sentences are highlighted in yellow/cyan and presented in ranking order,
 i.e, the highest rank sentence is shown first. 
-As the down/up arrow is clicked, the browser scrolls to the next/previous sentence and 
+As the down/up arrows are clicked, the browser scrolls to the next/previous sentence and 
 the corresponding matching words in the sentence are highlighted in yellow. 
 Other matching words will remain highlighted in cyan.
 
