@@ -19,14 +19,23 @@
       <button id="close">
         <i class="fas fa-times"></i>
       </button>
-      <div class="Ranker">
-        <span>Ranking method: </span>
-        <input type="radio" id="rankerBM25" name="Ranker" value="BM25" checked/>
-        <label for="rankerBM25">BM25</label>
-        <input type="radio" id="rankerPLNVSM" name="Ranker" value="PLNVSM" />
-        <label for="rankerPLNVSM">PLNVSM</label>
-        <input type="radio" id="rankerExactMatch" name="Ranker" value="Exact Match" />
-        <label for="rankerExactMatch">Exact Match</label>
+      <div>
+        <div class="Ranker">
+          <span>Ranking method: </span>
+          <input type="radio" id="rankerBM25" name="Ranker" value="BM25" checked/>
+          <label for="rankerBM25">BM25</label>
+          <input type="radio" id="rankerPLNVSM" name="Ranker" value="PLNVSM" />
+          <label for="rankerPLNVSM">PLNVSM</label>
+          <input type="radio" id="rankerExactMatch" name="Ranker" value="Exact Match" />
+          <label for="rankerExactMatch">Exact Match</label>
+        </div>
+        <div class="TextGranularity">
+          <span>Text Granularity: </span>
+          <input type="radio" id="textGranularityTextNodes" name="TextGranularity" value="Text Nodes" checked/>
+          <label for="textGranularityTextNodes">Text Nodes</label>
+          <input type="radio" id="textGranularitySentences" name="TextGranularity" value="Sentences" />
+          <label for="textGranularitySentences">Sentences</label>
+        </div>
       </div>
       <span></span>
       <button id="like">

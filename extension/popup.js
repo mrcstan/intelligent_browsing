@@ -17,6 +17,10 @@ function rankingMethod() {
   return document.querySelector('input[name=Ranker]:checked').value;
 }
 
+function textGranularity() {
+  return document.querySelector('input[name=TextGranularity]:checked').value;
+}
+
 function messages() {
   return getElement('Messages')
 }
@@ -249,6 +253,7 @@ async function onSearchButtonClicked() {
     search_text: searchText,
     doc_content: resultValue,
     ranking_method: rankingMethod(),
+    split_text_nodes: textGranularity() === 'Sentences'
   }
 
   try {
@@ -371,6 +376,14 @@ function addRankingMethodListeners() {
   }));
 }
 
+function addTextGranularityListeners() {
+  document.querySelectorAll('input[name=TextGranularity]').forEach(radio => radio.addEventListener('change', () => { 
+    gLastSearchText = null;
+    gResultCount = 0;
+    onSearchButtonClicked();
+  }));
+}
+
 window.onload = () => {
   searchBox().addEventListener('keyup', onSearchTextTyped)
   searchBox().addEventListener('search', onSearch)
@@ -380,5 +393,6 @@ window.onload = () => {
   dislikeButton().addEventListener('click', onDislike)
   closeButton().addEventListener('click', onClose)
   addRankingMethodListeners()
+  addTextGranularityListeners()
   updateButtons()
 }
