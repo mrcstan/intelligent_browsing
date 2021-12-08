@@ -163,18 +163,25 @@ class IntelligentMatch:
 
     def preprocess_query(self):
         self.query_tokens = list(tokenize(self.query, lower=True))
-        self.query_tokens = preprocess_string(" ".join(self.query_tokens), self.text_filters)
+        assert len(self.text_filters) == 0 or len(self.text_filters) == 2
+        if len(self.text_filters) == 2:
+            # remove stop words
+            self.query_tokens = preprocess_string(" ".join(self.query_tokens), [self.text_filters[0]])
         # print('query_tokens before: ', self.query_tokens)
         if self.add_synonyms:
             new_query_tokens = []
             for word in self.query_tokens:
                 new_query_tokens.extend(self.get_synonyms(word))
             self.query_tokens.extend(new_query_tokens)
+        if len(self.text_filters) == 2:
+            # stem words
+            self.query_tokens = preprocess_string(" ".join(self.query_tokens), [self.text_filters[1]])
         # print('query_tokens after: ', self.query_tokens)
 
     def preprocess_documents(self):
         self.doc_tokens = [list(tokenize(doc, lower=True)) for doc in self.documents]
-        self.doc_tokens = [preprocess_string(" ".join(doc), self.text_filters) for doc in self.doc_tokens]
+        if len(self.text_filters) > 0:
+            self.doc_tokens = [preprocess_string(" ".join(doc), self.text_filters) for doc in self.doc_tokens]
         # print('doc_tokens: ', self.doc_tokens)
 
     def get_query_document_bow(self):
