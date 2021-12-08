@@ -6,6 +6,7 @@ from gensim.parsing.preprocessing import preprocess_string
 from gensim.parsing.preprocessing import stem_text
 from gensim.utils import tokenize
 from nltk.corpus import wordnet as wn
+import nltk
 import numpy as np
 from rankingFunctions import BM25, PLNVSM
 import re
@@ -13,6 +14,8 @@ from typing import List
 
 # regular expression for get_sentences
 RE_SENTENCE = re.compile(r'(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)', re.UNICODE)
+
+nltk.download('wordnet')
 
 
 class IntelligentMatch:
