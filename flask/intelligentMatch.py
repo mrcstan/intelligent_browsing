@@ -79,51 +79,8 @@ class IntelligentMatch:
         self.rank_doc_inds = []
         self.result = []
 
-    def rank(self):
-        self.result = []
-        if len(self.query_bow):
-            if self.ranker == 'BM25':
-                ranking_func = BM25(self.doc_bow, b=0.0)
-                scores = ranking_func.get_scores(self.query_bow)
-                self.rank_doc_inds = np.argsort(scores)[::-1]
-            elif self.ranker == 'PLNVSM':
-                ranker = PLNVSM(self.doc_bow, b=0.0)
-                scores = ranker.get_scores(self.query_bow)
-                self.rank_doc_inds = np.argsort(scores)[::-1]
-            elif self.ranker == 'Exact Match':
-                clean_query = ' '.join(self.query_tokens)
-                clean_documents = [' '.join(doc_token) for doc_token in self.doc_tokens]
-                scores = [1 if clean_query in doc else 0 for doc in clean_documents]
-                self.rank_doc_inds = np.where(scores)[0]
-            else:
-                raise Exception('Unknown ranker')
-
-            for ii, ind in enumerate(self.rank_doc_inds):
-
-                # jsonify does not recognize numpy object/int
-                # cast number as int
-                ind = int(ind)
-
-                # skip document with ranking score = 0
-                # breaking out of the loop assumes that the
-                # scores are ordered from highest to lowest
-                if scores[ind] == 0:
-                    break
-
-                # print('rank=', ii, ', ind=', ind, ', score=', scores[ind], 'ranked doc=', documents[ind])
-
-                word_offsets = self.match_word_in_document(self.documents[ind], self.query_tokens)
-
-                # return the entire sentence
-                node_ind = self.map_to_text_node[ind][0]
-                offset = self.map_to_text_node[ind][1]
-                self.result.append({
-                    'index': node_ind,
-                    'offsets': [offset, offset + len(self.documents[ind])],
-                    'wordOffsets': word_offsets
-                })
-
-        return self.result
+    def get_query_tokens(self):
+        return self.query_tokens
 
     # Copied from gensim.summarization, which has been deprecated in version 4.0
     @staticmethod
@@ -253,3 +210,49 @@ class IntelligentMatch:
                     break
 
         return word_offsets
+
+    def rank(self):
+        self.result = []
+        if len(self.query_bow):
+            if self.ranker == 'BM25':
+                ranking_func = BM25(self.doc_bow, b=0.0)
+                scores = ranking_func.get_scores(self.query_bow)
+                self.rank_doc_inds = np.argsort(scores)[::-1]
+            elif self.ranker == 'PLNVSM':
+                ranker = PLNVSM(self.doc_bow, b=0.0)
+                scores = ranker.get_scores(self.query_bow)
+                self.rank_doc_inds = np.argsort(scores)[::-1]
+            elif self.ranker == 'Exact Match':
+                clean_query = ' '.join(self.query_tokens)
+                clean_documents = [' '.join(doc_token) for doc_token in self.doc_tokens]
+                scores = [1 if clean_query in doc else 0 for doc in clean_documents]
+                self.rank_doc_inds = np.where(scores)[0]
+            else:
+                raise Exception('Unknown ranker')
+
+            for ii, ind in enumerate(self.rank_doc_inds):
+
+                # jsonify does not recognize numpy object/int
+                # cast number as int
+                ind = int(ind)
+
+                # skip document with ranking score = 0
+                # breaking out of the loop assumes that the
+                # scores are ordered from highest to lowest
+                if scores[ind] == 0:
+                    break
+
+                # print('rank=', ii, ', ind=', ind, ', score=', scores[ind], 'ranked doc=', documents[ind])
+
+                word_offsets = self.match_word_in_document(self.documents[ind], self.query_tokens)
+
+                # return the entire sentence
+                node_ind = self.map_to_text_node[ind][0]
+                offset = self.map_to_text_node[ind][1]
+                self.result.append({
+                    'index': node_ind,
+                    'offsets': [offset, offset + len(self.documents[ind])],
+                    'wordOffsets': word_offsets
+                })
+
+        return self.result

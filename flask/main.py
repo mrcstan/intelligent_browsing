@@ -75,10 +75,12 @@ def words():
                 split_text_nodes = request_data['split_text_nodes']
                 add_synonyms = request_data['add_synonyms']
 
-                intelliMatch = IntelligentMatch(query, text_nodes, split_text_nodes=split_text_nodes,
+                intelli_match = IntelligentMatch(query, text_nodes, split_text_nodes=split_text_nodes,
                                                 ranker=ranker, add_synonyms=add_synonyms)
-                intelliMatch.initialize()
-                result = intelliMatch.rank()
+                intelli_match.initialize()
+                result = intelli_match.rank()
+                if add_synonyms:
+                    print('Query tokens: ', intelli_match.get_query_tokens())
                 #print('result: ', result)
             else:
                 print('Error: provided website data is empty')
