@@ -1,5 +1,5 @@
 .XxXIntelligentSearchWord {
-  background-color: aquamarine !important;
+  /* background-color: aquamarine !important; */
 }
 
 .XxXIntelligentSearchCurrent > .XxXIntelligentSearchWord {
@@ -10,4 +10,5 @@
 }
 
 .XxXIntelligentSearchCurrent {
+  background-color: cyan;
 }
