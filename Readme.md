@@ -1,2 +1,2 @@
 # Intelligent Browsing
-Refer to "Project-documentation.pdf" in the same directory.
+Refer to "Project-documentation.pdf"
