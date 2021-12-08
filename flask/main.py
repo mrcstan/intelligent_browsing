@@ -73,9 +73,10 @@ def words():
                 text_nodes = request_data['doc_content']['text_nodes']
                 ranker = request_data['ranking_method']
                 split_text_nodes = request_data['split_text_nodes']
+                add_synonyms = request_data['add_synonyms']
 
                 intelliMatch = IntelligentMatch(query, text_nodes, split_text_nodes=split_text_nodes,
-                                                ranker=ranker, add_synonyms=True)
+                                                ranker=ranker, add_synonyms=add_synonyms)
                 intelliMatch.initialize()
                 result = intelliMatch.rank()
                 #print('result: ', result)

@@ -21,6 +21,11 @@ function textGranularity() {
   return document.querySelector('input[name=TextGranularity]:checked').value;
 }
 
+function synonyms() {
+  return document.querySelector('input[id=synonyms]').checked;
+}
+
+
 function messages() {
   return getElement('Messages')
 }
@@ -253,7 +258,8 @@ async function onSearchButtonClicked() {
     search_text: searchText,
     doc_content: resultValue,
     ranking_method: rankingMethod(),
-    split_text_nodes: textGranularity() === 'Sentences'
+    split_text_nodes: textGranularity() === 'Sentences',
+    add_synonyms: synonyms(),
   }
 
   try {
@@ -384,6 +390,14 @@ function addTextGranularityListeners() {
   }));
 }
 
+function addSynonymsListener() {
+  document.querySelector('input[id=synonyms]').addEventListener('change', () => { 
+    gLastSearchText = null;
+    gResultCount = 0;
+    onSearchButtonClicked();
+  });
+}
+
 window.onload = () => {
   searchBox().addEventListener('keyup', onSearchTextTyped)
   searchBox().addEventListener('search', onSearch)
@@ -394,5 +408,6 @@ window.onload = () => {
   closeButton().addEventListener('click', onClose)
   addRankingMethodListeners()
   addTextGranularityListeners()
+  addSynonymsListener()
   updateButtons()
 }
